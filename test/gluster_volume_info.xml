@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volInfo>
+    <volumes>
+      <volume>
+        <name>gv_cluster</name>
+        <id>841dceb0-ffff-4005-9463-4addcfd2ffff</id>
+        <status>1</status>
+        <statusStr>Started</statusStr>
+        <snapshotCount>0</snapshotCount>
+        <brickCount>4</brickCount>
+        <distCount>4</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>4</replicaCount>
+        <arbiterCount>0</arbiterCount>
+        <disperseCount>0</disperseCount>
+        <redundancyCount>0</redundancyCount>
+        <type>2</type>
+        <typeStr>Replicate</typeStr>
+        <transport>0</transport>
+        <xlators/>
+        <bricks>
+          <brick uuid="a049c424-ffff-4436-abd4-ef3fc3fffffa">host1.example.local:/mnt/gluster/gv_cluster<name>host1.example.local:/mnt/gluster/gv_cluster</name><hostUuid>a049c424-ffff-4436-abd4-ef3fcfffffa</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="f6fa44e7-ffff-4f6e-8404-6d2ce7fffff1">host2.example.local:/mnt/gluster/gv_cluster<name>host2.example.local:/mnt/gluster/gv_cluster</name><hostUuid>f6fa44e7-ffff-4f6e-8404-6d2cefffff1</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="073c4354-ffff-4474-95b3-c2bc23fffffd">host3.example.local:/mnt/gluster/gv_cluster<name>host3.example.local:/mnt/gluster/gv_cluster</name><hostUuid>073c4354-ffff-4474-95b3-c2bc2fffffd</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="1d5d9c25-ffff-4db6-8fd6-274cf3fffff8">host4.example.local:/mnt/gluster/gv_cluster<name>host4.example.local:/mnt/gluster/gv_cluster</name><hostUuid>1d5d9c25-ffff-4db6-8fd6-274cffffff8</hostUuid><isArbiter>0</isArbiter></brick>
+        </bricks>
+        <optCount>5</optCount>
+        <options>
+          <option>
+            <name>nfs.disable</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>server.ssl</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>client.ssl</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>performance.readdir-ahead</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>auth.allow</name>
+            <value>10.0.1.111,10.0.1.112,10.0.1.113,10.0.1.114,host1,host2,host3,host4,host1.example.local,host2.example.local,host3.example.local,host4.example.local,127.0.0.1,localhost</value>
+          </option>
+        </options>
+      </volume>
+      <volume>
+        <name>gv_leoticket</name>
+        <id>592c9a08-3b02-482f-ab40-87372760cb47</id>
+        <status>1</status>
+        <statusStr>Started</statusStr>
+        <snapshotCount>0</snapshotCount>
+        <brickCount>4</brickCount>
+        <distCount>4</distCount>
+        <stripeCount>1</stripeCount>
+        <replicaCount>4</replicaCount>
+        <arbiterCount>0</arbiterCount>
+        <disperseCount>0</disperseCount>
+        <redundancyCount>0</redundancyCount>
+        <type>2</type>
+        <typeStr>Replicate</typeStr>
+        <transport>0</transport>
+        <xlators/>
+        <bricks>
+          <brick uuid="a049c424-ffff-4436-abd4-ef3fcfffffa">host1.example.local:/mnt/gluster/gv_leoticket<name>host1.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>a049c424-ffff-4436-abd4-ef3fcfffffa</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="f6fa44e7-ffff-4f6e-8404-6d2cefffff1">host2.example.local:/mnt/gluster/gv_leoticket<name>host2.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>f6fa44e7-ffff-4f6e-8404-6d2cefffff1</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="073c4354-ffff-4474-95b3-c2bc2fffffd">host3.example.local:/mnt/gluster/gv_leoticket<name>host3.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>073c4354-ffff-4474-95b3-c2bc2fffffd</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="1d5d9c25-ffff-4db6-8fd6-274cffffff8">host4.example.local:/mnt/gluster/gv_leoticket<name>host4.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>1d5d9c25-ffff-4db6-8fd6-274cffffff8</hostUuid><isArbiter>0</isArbiter></brick>
+        </bricks>
+        <optCount>7</optCount>
+        <options>
+          <option>
+            <name>nfs.disable</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>server.ssl</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>client.ssl</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>performance.readdir-ahead</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>auth.allow</name>
+            <value>10.0.1.111,10.0.1.112,10.0.1.113,10.0.1.114,host1,host2,host3,host4,host1.example.local,host2.example.local,host3.example.local,host4.example.local,127.0.0.1,localhost</value>
+          </option>
+          <option>
+            <name>diagnostics.latency-measurement</name>
+            <value>on</value>
+          </option>
+          <option>
+            <name>diagnostics.count-fop-hits</name>
+            <value>on</value>
+          </option>
+        </options>
+      </volume>
+      <count>2</count>
+    </volumes>
+  </volInfo>
+</cliOutput>

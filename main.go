@@ -1,4 +1,4 @@
-// Copyright 2015 The Prometheus Authors
+// Copyright 2015 Oliver Fesseler
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// A minimal example of how to include Prometheus instrumentation.
+// Glusterfs exorter currently scaping volume info
 package main
 
 import (
@@ -24,17 +24,26 @@ import (
 	"bytes"
 	"encoding/xml"
 	"io/ioutil"
-	"time"
 	"github.com/prometheus/common/log"
-	"strconv"
+	"fmt"
+	"github.com/prometheus/common/version"
+	"os"
+)
+
+const (
+	VERSION string = "0.1.0"
+)
+
+var (
+	GLUSTER_CMD = "/usr/sbin/gluster"
 )
 
 type CliOutput struct {
-	XMLName xml.Name  `xml:"cliOutput"`
-	OpRet int         `xml:"opRet"`
-	OpErrno int       `xml:"opErrno"`
+	XMLName  xml.Name  `xml:"cliOutput"`
+	OpRet    int         `xml:"opRet"`
+	OpErrno  int       `xml:"opErrno"`
 	OpErrstr string   `xml:"opErrstr"`
-	VolInfo VolInfo   `xml:"volInfo"`
+	VolInfo  VolInfo   `xml:"volInfo"`
 }
 
 type VolInfo struct {
@@ -44,25 +53,25 @@ type VolInfo struct {
 
 type Volumes struct {
 	XMLName xml.Name  `xml:"volumes"`
-	Volume []Volume   `xml:"volume"`
-	Count int         `xml:"count"`
+	Volume  []Volume   `xml:"volume"`
+	Count   int         `xml:"count"`
 }
 
 type Volume struct {
-	XMLName xml.Name  `xml:"volume"`
-	Name string       `xml:"name"`
-	Id string         `xml:"id"`
-	Status int        `xml:"status"`
-	StatusStr string  `xml:"statusStr"`
+	XMLName    xml.Name  `xml:"volume"`
+	Name       string       `xml:"name"`
+	Id         string         `xml:"id"`
+	Status     int        `xml:"status"`
+	StatusStr  string  `xml:"statusStr"`
 	BrickCount int    `xml:"brickCount"`
-	Bricks []Brick    `xml:"bricks"`
-	DistCount int     `xml:"distCount"`
+	Bricks     []Brick    `xml:"bricks"`
+	DistCount  int     `xml:"distCount"`
 }
 
 type Brick struct {
-	Uuid string       `xml:"brick>uuid"`
-	Name string       `xml:"brick>name"`
-	HostUuid string   `xml:"brick>hostUuid"`
+	Uuid      string       `xml:"brick>uuid"`
+	Name      string       `xml:"brick>name"`
+	HostUuid  string   `xml:"brick>hostUuid"`
 	IsArbiter int     `xml:"brick>isArbiter"`
 }
 
@@ -112,49 +121,61 @@ func init() {
 	prometheus.MustRegister(distribution_count)
 }
 
-func glusterVolumeInfo(sec_int int) {
-	for {
-		// Gluster Info
-		cmd_profile := exec.Command("/usr/sbin/gluster", "volume", "info", "--xml")
-		//cmd_profile := exec.Command("/home/oli/dev/glusterfs_exporter_go/gluster_info")
+func versionInfo() {
+	fmt.Println("Gluster Exporter Version: ", VERSION)
+	fmt.Println("Tested Gluster Version:   ", "3.8.5")
+	fmt.Println("Go Version:               ", version.GoVersion)
 
-		stdOutbuff := &bytes.Buffer{}
+	os.Exit(0)
+}
 
-		cmd_profile.Stdout = stdOutbuff
+func ExecGlusterCommand(arg ...string) *bytes.Buffer{
+	stdoutBuffer := &bytes.Buffer{}
+	glusterExec := exec.Command(GLUSTER_CMD, arg...)
+	glusterExec.Stdout = stdoutBuffer
+	err := glusterExec.Run()
 
-		err := cmd_profile.Run()
+	if err != nil  {
+		log.Fatal(err)
+	}
+	return stdoutBuffer
+}
 
-		if err != nil {
-			log.Fatal(err)
-		}
+// Unmarshall returned bytes to CliOutput struct
+func infoUnmarshall(cmdOutBuff *bytes.Buffer) CliOutput {
+	var vol CliOutput
+	b, err := ioutil.ReadAll(cmdOutBuff)
+	if err != nil {
+		log.Fatal(err)
+	}
+	xml.Unmarshal(b, &vol)
+	return vol
+}
 
-		var vol CliOutput
-		b, err := ioutil.ReadAll(stdOutbuff)
-		if err != nil {
-			log.Fatal(err)
-		}
-		xml.Unmarshal(b, &vol)
+func GlusterVolumeInfo() {
+	// Execute gluster volume info
+	stdOutbuff := ExecGlusterCommand("volume", "info")
 
-		// set opErrno
-		errno.WithLabelValues().Set(float64(vol.OpErrno))
+	// Unmarshall returned bytes to CliOutput struct
+	vol := infoUnmarshall(stdOutbuff)
+
+	// set opErrno
+	errno.WithLabelValues().Set(float64(vol.OpErrno))
+	log.Debug("opErrno: %v", vol.OpErrno)
+
+	// set volume count
+	volume_count.WithLabelValues().Set(float64(vol.VolInfo.Volumes.Count))
+	log.Debug("volume_count: %v", vol.VolInfo.Volumes.Count)
+
+	// Volume based values
+	for _, v := range vol.VolInfo.Volumes.Volume {
+		// brick count with volume label
+		brick_count.WithLabelValues(v.Name).Set(float64(v.BrickCount))
 		log.Debug("opErrno: %v", vol.OpErrno)
 
-		// set volume count
-		volume_count.WithLabelValues().Set(float64(vol.VolInfo.Volumes.Count))
-		log.Debug("volume_count: %v", vol.VolInfo.Volumes.Count)
-
-		// Volume based values
-		for _, v := range vol.VolInfo.Volumes.Volume {
-			// brick count with volume label
-			brick_count.WithLabelValues(v.Name).Set(float64(v.BrickCount))
-			log.Debug("opErrno: %v", vol.OpErrno)
-
-			// distribution count with volume label
-			distribution_count.WithLabelValues(v.Name).Set(float64(v.DistCount))
-			log.Debug("opErrno: %v", vol.OpErrno)
-
-		}
-		time.Sleep(time.Duration(sec_int) * time.Second)
+		// distribution count with volume label
+		distribution_count.WithLabelValues(v.Name).Set(float64(v.DistCount))
+		log.Debug("opErrno: %v", vol.OpErrno)
 	}
 }
 
@@ -172,21 +193,32 @@ func main() {
 
 	// commandline arguments
 	var (
-		addr = flag.String("listen-address", ":9189",  "The address to listen on for HTTP requests.")
-		sec  = flag.String("scrape-seconds", "2",      "Frequency of scraping glusterfs in seconds")
+		metricPath = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
+		addr = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
+		version_tag = flag.Bool("version", false, "Prints version information")
 	)
 
 	flag.Parse()
 
-	// ensure that sec is int
-	sec_int, err := strconv.Atoi(*sec)
-	if err != nil {
-		log.Fatal("Parameter -scrape-seconds is not an int value")
+	if *version_tag {
+		versionInfo()
 	}
 
+	log.Info("GlusterFS Metrics Exporter v", VERSION)
+
 	// gluster volume info
-	go glusterVolumeInfo(sec_int)
+	go GlusterVolumeInfo()
 
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<html>
+<head><title>GlusterFS Exporter v` + VERSION + `</title></head>
+<body>
+<h1>GlusterFS Exporter v` + VERSION + `</h1>
+<p><a href='` + *metricPath + `'>Metrics</a></p>
+</body>
+</html>
+						`))
+	})
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
