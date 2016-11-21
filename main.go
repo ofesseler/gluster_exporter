@@ -35,11 +35,11 @@ const (
 )
 
 type CliOutput struct {
-	XMLName xml.Name  `xml:"cliOutput"`
-	OpRet int         `xml:"opRet"`
-	OpErrno int       `xml:"opErrno"`
+	XMLName  xml.Name  `xml:"cliOutput"`
+	OpRet    int         `xml:"opRet"`
+	OpErrno  int       `xml:"opErrno"`
 	OpErrstr string   `xml:"opErrstr"`
-	VolInfo VolInfo   `xml:"volInfo"`
+	VolInfo  VolInfo   `xml:"volInfo"`
 }
 
 type VolInfo struct {
@@ -49,25 +49,25 @@ type VolInfo struct {
 
 type Volumes struct {
 	XMLName xml.Name  `xml:"volumes"`
-	Volume []Volume   `xml:"volume"`
-	Count int         `xml:"count"`
+	Volume  []Volume   `xml:"volume"`
+	Count   int         `xml:"count"`
 }
 
 type Volume struct {
-	XMLName xml.Name  `xml:"volume"`
-	Name string       `xml:"name"`
-	Id string         `xml:"id"`
-	Status int        `xml:"status"`
-	StatusStr string  `xml:"statusStr"`
+	XMLName    xml.Name  `xml:"volume"`
+	Name       string       `xml:"name"`
+	Id         string         `xml:"id"`
+	Status     int        `xml:"status"`
+	StatusStr  string  `xml:"statusStr"`
 	BrickCount int    `xml:"brickCount"`
-	Bricks []Brick    `xml:"bricks"`
-	DistCount int     `xml:"distCount"`
+	Bricks     []Brick    `xml:"bricks"`
+	DistCount  int     `xml:"distCount"`
 }
 
 type Brick struct {
-	Uuid string       `xml:"brick>uuid"`
-	Name string       `xml:"brick>name"`
-	HostUuid string   `xml:"brick>hostUuid"`
+	Uuid      string       `xml:"brick>uuid"`
+	Name      string       `xml:"brick>name"`
+	HostUuid  string   `xml:"brick>hostUuid"`
 	IsArbiter int     `xml:"brick>isArbiter"`
 }
 
@@ -117,49 +117,48 @@ func init() {
 	prometheus.MustRegister(distribution_count)
 }
 
-func glusterVolumeInfo(sec_int int) {
-	for {
-		// Gluster Info
-		cmd_profile := exec.Command("/usr/sbin/gluster", "volume", "info", "--xml")
-		//cmd_profile := exec.Command("/home/oli/dev/glusterfs_exporter_go/gluster_info")
 
-		stdOutbuff := &bytes.Buffer{}
 
-		cmd_profile.Stdout = stdOutbuff
+func GlusterVolumeInfo(sec_int int) {
+	// Gluster Info
+	cmd_profile := exec.Command("/usr/sbin/gluster", "volume", "info", "--xml")
+	//cmd_profile := exec.Command("/home/oli/dev/glusterfs_exporter_go/gluster_info")
 
-		err := cmd_profile.Run()
+	stdOutbuff := &bytes.Buffer{}
 
-		if err != nil {
-			log.Fatal(err)
-		}
+	cmd_profile.Stdout = stdOutbuff
 
-		var vol CliOutput
-		b, err := ioutil.ReadAll(stdOutbuff)
-		if err != nil {
-			log.Fatal(err)
-		}
-		xml.Unmarshal(b, &vol)
+	err := cmd_profile.Run()
 
-		// set opErrno
-		errno.WithLabelValues().Set(float64(vol.OpErrno))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var vol CliOutput
+	b, err := ioutil.ReadAll(stdOutbuff)
+	if err != nil {
+		log.Fatal(err)
+	}
+	xml.Unmarshal(b, &vol)
+
+	// set opErrno
+	errno.WithLabelValues().Set(float64(vol.OpErrno))
+	log.Debug("opErrno: %v", vol.OpErrno)
+
+	// set volume count
+	volume_count.WithLabelValues().Set(float64(vol.VolInfo.Volumes.Count))
+	log.Debug("volume_count: %v", vol.VolInfo.Volumes.Count)
+
+	// Volume based values
+	for _, v := range vol.VolInfo.Volumes.Volume {
+		// brick count with volume label
+		brick_count.WithLabelValues(v.Name).Set(float64(v.BrickCount))
 		log.Debug("opErrno: %v", vol.OpErrno)
 
-		// set volume count
-		volume_count.WithLabelValues().Set(float64(vol.VolInfo.Volumes.Count))
-		log.Debug("volume_count: %v", vol.VolInfo.Volumes.Count)
+		// distribution count with volume label
+		distribution_count.WithLabelValues(v.Name).Set(float64(v.DistCount))
+		log.Debug("opErrno: %v", vol.OpErrno)
 
-		// Volume based values
-		for _, v := range vol.VolInfo.Volumes.Volume {
-			// brick count with volume label
-			brick_count.WithLabelValues(v.Name).Set(float64(v.BrickCount))
-			log.Debug("opErrno: %v", vol.OpErrno)
-
-			// distribution count with volume label
-			distribution_count.WithLabelValues(v.Name).Set(float64(v.DistCount))
-			log.Debug("opErrno: %v", vol.OpErrno)
-
-		}
-		time.Sleep(time.Duration(sec_int) * time.Second)
 	}
 }
 
@@ -173,12 +172,16 @@ func glusterProfile(sec_int int) {
 	//cmd_profile := exec.Command("/usr/sbin/gluster", "volume", "profile", "gv_leoticket", "info", "cumulative", "--xml")
 }
 
+
+
 func main() {
 
 	// commandline arguments
 	var (
-		addr = flag.String("listen-address", ":9189",  "The address to listen on for HTTP requests.")
-		sec  = flag.String("scrape-seconds", "2",      "Frequency of scraping glusterfs in seconds")
+		metricPath = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
+		addr = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
+		sec = flag.String("scrape-seconds", "2", "Frequency of scraping glusterfs in seconds")
+		version_tag = flag.Bool("version", false, "Prints version information")
 	)
 
 	flag.Parse()
@@ -193,7 +196,7 @@ func main() {
 	}
 
 	// gluster volume info
-	go glusterVolumeInfo(sec_int)
+	go GlusterVolumeInfo(sec_int)
 
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(*addr, nil))
