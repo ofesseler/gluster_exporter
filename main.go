@@ -27,6 +27,11 @@ import (
 	"time"
 	"github.com/prometheus/common/log"
 	"strconv"
+	"fmt"
+)
+
+const (
+	VERSION string = "0.1.0"
 )
 
 type CliOutput struct {
@@ -177,6 +182,9 @@ func main() {
 	)
 
 	flag.Parse()
+
+
+	log.Info("GlusterFS Metrics Exporter v", VERSION)
 
 	// ensure that sec is int
 	sec_int, err := strconv.Atoi(*sec)
