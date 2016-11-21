@@ -20,7 +20,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install glusterfs-server
 RUN apt-get clean
 
 # Copy gluster_exporter
-COPY glusterfs_exporter_go /usr/bin/glusterfs_exporter_go
+COPY gluster_exporter /usr/bin/gluster_exporter
 
 # Create gluster volume, start gluster service and gluster_exporter
 RUN mkdir -p /mnt/gv_test
