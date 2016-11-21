@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"io/ioutil"
-	"time"
 	"github.com/prometheus/common/log"
 	"strconv"
 	"fmt"
