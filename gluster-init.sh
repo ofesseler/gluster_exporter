@@ -6,11 +6,9 @@ mkdir -p /data
 gluster volume create data $(hostname):/data force
 gluster volume start data
 
-#tail -f /var/log/glusterfs/etc-glusterfs-glusterd.vol.log
+/usr/bin/gluster_exporter -version
 
-/usr/bin/glusterfs_exporter_go -version
-
-/usr/bin/glusterfs_exporter_go
+/usr/bin/gluster_exporter
 
 service glusterfs-server stop
 
