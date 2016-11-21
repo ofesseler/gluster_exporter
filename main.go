@@ -25,7 +25,6 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"github.com/prometheus/common/log"
-	"strconv"
 	"fmt"
 	"github.com/prometheus/common/version"
 	"os"
@@ -33,6 +32,10 @@ import (
 
 const (
 	VERSION string = "0.1.0"
+)
+
+var (
+	GLUSTER_CMD = "/usr/sbin/gluster"
 )
 
 type CliOutput struct {
@@ -126,27 +129,35 @@ func versionInfo() {
 	os.Exit(0)
 }
 
-func GlusterVolumeInfo(sec_int int) {
-	// Gluster Info
-	cmd_profile := exec.Command("/usr/sbin/gluster", "volume", "info", "--xml")
-	//cmd_profile := exec.Command("/home/oli/dev/glusterfs_exporter_go/gluster_info")
+func ExecGlusterCommand(arg ...string) *bytes.Buffer{
+	stdoutBuffer := &bytes.Buffer{}
+	glusterExec := exec.Command(GLUSTER_CMD, arg...)
+	glusterExec.Stdout = stdoutBuffer
+	err := glusterExec.Run()
 
-	stdOutbuff := &bytes.Buffer{}
-
-	cmd_profile.Stdout = stdOutbuff
-
-	err := cmd_profile.Run()
-
-	if err != nil {
+	if err != nil  {
 		log.Fatal(err)
 	}
+	return stdoutBuffer
+}
 
+// Unmarshall returned bytes to CliOutput struct
+func infoUnmarshall(cmdOutBuff *bytes.Buffer) CliOutput {
 	var vol CliOutput
-	b, err := ioutil.ReadAll(stdOutbuff)
+	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Fatal(err)
 	}
 	xml.Unmarshal(b, &vol)
+	return vol
+}
+
+func GlusterVolumeInfo() {
+	// Execute gluster volume info
+	stdOutbuff := ExecGlusterCommand("volume", "info")
+
+	// Unmarshall returned bytes to CliOutput struct
+	vol := infoUnmarshall(stdOutbuff)
 
 	// set opErrno
 	errno.WithLabelValues().Set(float64(vol.OpErrno))
@@ -187,7 +198,6 @@ func main() {
 	var (
 		metricPath = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
 		addr = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
-		sec = flag.String("scrape-seconds", "2", "Frequency of scraping glusterfs in seconds")
 		version_tag = flag.Bool("version", false, "Prints version information")
 	)
 
@@ -199,14 +209,8 @@ func main() {
 
 	log.Info("GlusterFS Metrics Exporter v", VERSION)
 
-	// ensure that sec is int
-	sec_int, err := strconv.Atoi(*sec)
-	if err != nil {
-		log.Fatal("Parameter -scrape-seconds is not an int value")
-	}
-
 	// gluster volume info
-	go GlusterVolumeInfo(sec_int)
+	go GlusterVolumeInfo()
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
