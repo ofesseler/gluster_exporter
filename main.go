@@ -19,14 +19,14 @@ import (
 	"net/http"
 	"os/exec"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"bytes"
 	"encoding/xml"
-	"io/ioutil"
-	"github.com/prometheus/common/log"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
+	"io/ioutil"
 	"os"
 )
 
@@ -39,48 +39,48 @@ var (
 )
 
 type CliOutput struct {
-	XMLName  xml.Name  `xml:"cliOutput"`
-	OpRet    int         `xml:"opRet"`
-	OpErrno  int       `xml:"opErrno"`
+	XMLName  xml.Name `xml:"cliOutput"`
+	OpRet    int      `xml:"opRet"`
+	OpErrno  int      `xml:"opErrno"`
 	OpErrstr string   `xml:"opErrstr"`
-	VolInfo  VolInfo   `xml:"volInfo"`
+	VolInfo  VolInfo  `xml:"volInfo"`
 }
 
 type VolInfo struct {
-	XMLName xml.Name  `xml:"volInfo"`
-	Volumes Volumes   `xml:"volumes"`
+	XMLName xml.Name `xml:"volInfo"`
+	Volumes Volumes  `xml:"volumes"`
 }
 
 type Volumes struct {
-	XMLName xml.Name  `xml:"volumes"`
-	Volume  []Volume   `xml:"volume"`
-	Count   int         `xml:"count"`
+	XMLName xml.Name `xml:"volumes"`
+	Volume  []Volume `xml:"volume"`
+	Count   int      `xml:"count"`
 }
 
 type Volume struct {
-	XMLName    xml.Name  `xml:"volume"`
-	Name       string       `xml:"name"`
-	Id         string         `xml:"id"`
-	Status     int        `xml:"status"`
-	StatusStr  string  `xml:"statusStr"`
-	BrickCount int    `xml:"brickCount"`
-	Bricks     []Brick    `xml:"bricks"`
-	DistCount  int     `xml:"distCount"`
+	XMLName    xml.Name `xml:"volume"`
+	Name       string   `xml:"name"`
+	Id         string   `xml:"id"`
+	Status     int      `xml:"status"`
+	StatusStr  string   `xml:"statusStr"`
+	BrickCount int      `xml:"brickCount"`
+	Bricks     []Brick  `xml:"bricks"`
+	DistCount  int      `xml:"distCount"`
 }
 
 type Brick struct {
-	Uuid      string       `xml:"brick>uuid"`
-	Name      string       `xml:"brick>name"`
-	HostUuid  string   `xml:"brick>hostUuid"`
-	IsArbiter int     `xml:"brick>isArbiter"`
+	Uuid      string `xml:"brick>uuid"`
+	Name      string `xml:"brick>name"`
+	HostUuid  string `xml:"brick>hostUuid"`
+	IsArbiter int    `xml:"brick>isArbiter"`
 }
 
 var (
 	// Error number from GlusterFS
 	errno = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:"glusterfs_errno",
-			Help:"Error Number Glusterfs",
+			Name: "glusterfs_errno",
+			Help: "Error Number Glusterfs",
 		},
 		[]string{},
 	)
@@ -88,8 +88,8 @@ var (
 	// creates a gauge of active nodes in glusterfs
 	volume_count = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:"glusterfs_volume_count",
-			Help:"Number of active glusterfs nodes",
+			Name: "glusterfs_volume_count",
+			Help: "Number of active glusterfs nodes",
 		},
 		[]string{},
 	)
@@ -97,8 +97,8 @@ var (
 	// Count of bricks for gluster volume
 	brick_count = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:"glusterfs_brick_count",
-			Help:"Count of bricks for gluster volume",
+			Name: "glusterfs_brick_count",
+			Help: "Count of bricks for gluster volume",
 		},
 		[]string{"volume"},
 	)
@@ -106,8 +106,8 @@ var (
 	// distribution count of bricks
 	distribution_count = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:"glusterfs_nodes_active",
-			Help:"distribution count of bricks",
+			Name: "glusterfs_nodes_active",
+			Help: "distribution count of bricks",
 		},
 		[]string{"volume"},
 	)
@@ -129,13 +129,13 @@ func versionInfo() {
 	os.Exit(0)
 }
 
-func ExecGlusterCommand(arg ...string) *bytes.Buffer{
+func ExecGlusterCommand(arg ...string) *bytes.Buffer {
 	stdoutBuffer := &bytes.Buffer{}
 	glusterExec := exec.Command(GLUSTER_CMD, arg...)
 	glusterExec.Stdout = stdoutBuffer
 	err := glusterExec.Run()
 
-	if err != nil  {
+	if err != nil {
 		log.Fatal(err)
 	}
 	return stdoutBuffer
@@ -179,9 +179,8 @@ func GlusterVolumeInfo() {
 	}
 }
 
-func glusterProfile(sec_int int) {
+func GlusterVolumeProfile(sec_int int) {
 	// Gluster Profile
-
 
 	// Get gluster volumes, then call gluster profile on every volume
 
@@ -193,8 +192,8 @@ func main() {
 
 	// commandline arguments
 	var (
-		metricPath = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
-		addr = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
+		metricPath  = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
+		addr        = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		version_tag = flag.Bool("version", false, "Prints version information")
 	)
 
@@ -212,13 +211,13 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
-<head><title>GlusterFS Exporter v` + VERSION + `</title></head>
-<body>
-<h1>GlusterFS Exporter v` + VERSION + `</h1>
-<p><a href='` + *metricPath + `'>Metrics</a></p>
-</body>
-</html>
-						`))
+			<head><title>GlusterFS Exporter v` + VERSION + `</title></head>
+			<body>
+			<h1>GlusterFS Exporter v` + VERSION + `</h1>
+			<p><a href='` + *metricPath + `'>Metrics</a></p>
+			</body>
+			</html>
+		`))
 	})
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }

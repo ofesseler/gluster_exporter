@@ -1,10 +1,9 @@
 package main
 
-
 import (
-	"testing"
-	"io/ioutil"
 	"bytes"
+	"io/ioutil"
+	"testing"
 )
 
 func TestInfoUnmarshall(t *testing.T) {
