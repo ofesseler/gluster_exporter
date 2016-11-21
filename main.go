@@ -28,6 +28,8 @@ import (
 	"github.com/prometheus/common/log"
 	"strconv"
 	"fmt"
+	"github.com/prometheus/common/version"
+	"os"
 )
 
 const (
@@ -117,7 +119,13 @@ func init() {
 	prometheus.MustRegister(distribution_count)
 }
 
+func versionInfo() {
+	fmt.Println("Gluster Exporter Version: ", VERSION)
+	fmt.Println("Tested Gluster Version:   ", "3.8.5")
+	fmt.Println("Go Version:               ", version.GoVersion)
 
+	os.Exit(0)
+}
 
 func GlusterVolumeInfo(sec_int int) {
 	// Gluster Info
@@ -186,6 +194,9 @@ func main() {
 
 	flag.Parse()
 
+	if *version_tag {
+		versionInfo()
+	}
 
 	log.Info("GlusterFS Metrics Exporter v", VERSION)
 
