@@ -1,8 +1,8 @@
 GO = go
 
 info:
-	echo "build: Go build"
-	echo "docker: build and run in docker container"
+	@echo "build: Go build"
+	@echo "docker: build and run in docker container"
 
 build:
 	$(GO) build -o gluster_exporter main.go
