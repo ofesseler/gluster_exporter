@@ -209,5 +209,15 @@ func main() {
 	go GlusterVolumeInfo(sec_int)
 
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<html>
+<head><title>GlusterFS Exporter v` + VERSION + `</title></head>
+<body>
+<h1>GlusterFS Exporter v` + VERSION + `</h1>
+<p><a href='` + *metricPath + `'>Metrics</a></p>
+</body>
+</html>
+						`))
+	})
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
