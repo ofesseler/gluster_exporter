@@ -1,10 +1,9 @@
 package main
 
-
 import (
-	"testing"
-	"io/ioutil"
 	"bytes"
+	"io/ioutil"
+	"testing"
 )
 
 func TestInfoUnmarshall(t *testing.T) {
@@ -16,7 +15,7 @@ func TestInfoUnmarshall(t *testing.T) {
 		t.Errorf("error reading testxml in Path: %v", testXmlPath)
 	}
 
-	glusterVolumeInfo := infoUnmarshall(bytes.NewBuffer(dat))
+	glusterVolumeInfo, _ := glusterVolumeInfoUnmarshall(bytes.NewBuffer(dat))
 	if glusterVolumeInfo.OpErrno != 0 && glusterVolumeInfo.VolInfo.Volumes.Count == 2 {
 		t.Error("something wrong")
 	}
