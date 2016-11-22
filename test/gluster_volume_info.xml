@@ -53,7 +53,7 @@
         </options>
       </volume>
       <volume>
-        <name>gv_leoticket</name>
+        <name>gv_test</name>
         <id>592c9a08-3b02-482f-ab40-87372760cb47</id>
         <status>1</status>
         <statusStr>Started</statusStr>
@@ -70,10 +70,10 @@
         <transport>0</transport>
         <xlators/>
         <bricks>
-          <brick uuid="a049c424-ffff-4436-abd4-ef3fcfffffa">host1.example.local:/mnt/gluster/gv_leoticket<name>host1.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>a049c424-ffff-4436-abd4-ef3fcfffffa</hostUuid><isArbiter>0</isArbiter></brick>
-          <brick uuid="f6fa44e7-ffff-4f6e-8404-6d2cefffff1">host2.example.local:/mnt/gluster/gv_leoticket<name>host2.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>f6fa44e7-ffff-4f6e-8404-6d2cefffff1</hostUuid><isArbiter>0</isArbiter></brick>
-          <brick uuid="073c4354-ffff-4474-95b3-c2bc2fffffd">host3.example.local:/mnt/gluster/gv_leoticket<name>host3.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>073c4354-ffff-4474-95b3-c2bc2fffffd</hostUuid><isArbiter>0</isArbiter></brick>
-          <brick uuid="1d5d9c25-ffff-4db6-8fd6-274cffffff8">host4.example.local:/mnt/gluster/gv_leoticket<name>host4.example.local:/mnt/gluster/gv_leoticket</name><hostUuid>1d5d9c25-ffff-4db6-8fd6-274cffffff8</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="a049c424-ffff-4436-abd4-ef3fcfffffa">host1.example.local:/mnt/gluster/gv_test<name>host1.example.local:/mnt/gluster/gv_test</name><hostUuid>a049c424-ffff-4436-abd4-ef3fcfffffa</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="f6fa44e7-ffff-4f6e-8404-6d2cefffff1">host2.example.local:/mnt/gluster/gv_test<name>host2.example.local:/mnt/gluster/gv_test</name><hostUuid>f6fa44e7-ffff-4f6e-8404-6d2cefffff1</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="073c4354-ffff-4474-95b3-c2bc2fffffd">host3.example.local:/mnt/gluster/gv_test<name>host3.example.local:/mnt/gluster/gv_test</name><hostUuid>073c4354-ffff-4474-95b3-c2bc2fffffd</hostUuid><isArbiter>0</isArbiter></brick>
+          <brick uuid="1d5d9c25-ffff-4db6-8fd6-274cffffff8">host4.example.local:/mnt/gluster/gv_test<name>host4.example.local:/mnt/gluster/gv_test</name><hostUuid>1d5d9c25-ffff-4db6-8fd6-274cffffff8</hostUuid><isArbiter>0</isArbiter></brick>
         </bricks>
         <optCount>7</optCount>
         <options>

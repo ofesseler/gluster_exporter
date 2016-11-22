@@ -27,6 +27,10 @@ _testmain.go
 *.out
 
 # external packages folder
-vendor/
+vendor/*
+!vendor/vendor.json
+
 .idea/
+
 gluster_exporter
+*.tar.gz

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volList>
+    <count>2</count>
+    <volume>gv_cluster</volume>
+    <volume>gv_test</volume>
+  </volList>
+</cliOutput>
