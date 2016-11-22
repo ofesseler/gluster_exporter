@@ -11,7 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Glusterfs exorter currently scaping volume info
+// Thanks to other exporters such as consul_exporter which was a great help.
+// Gluster exporter, exports metrics from gluster commandline tool.
 package main
 
 import (
@@ -28,14 +29,13 @@ import (
 	"github.com/prometheus/common/version"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 const (
-	VERSION string = "0.1.0"
-)
-
-var (
-	GLUSTER_CMD = "/usr/sbin/gluster"
+	namespace          = "gluster"
+	VERSION     string = "0.1.0"
+	GLUSTER_CMD        = "/usr/sbin/gluster"
 )
 
 type CliOutput struct {
@@ -76,49 +76,119 @@ type Brick struct {
 }
 
 var (
-	// Error number from GlusterFS
-	errno = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "glusterfs_errno",
-			Help: "Error Number Glusterfs",
-		},
-		[]string{},
+	up = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "up"),
+		"Was the last query of Gluster successful.",
+		[]string{"node"}, nil,
 	)
 
-	// creates a gauge of active nodes in glusterfs
-	volume_count = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "glusterfs_volume_count",
-			Help: "Number of active glusterfs nodes",
-		},
-		[]string{},
+	volumesCount = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volumes_count"),
+		"How many volumes were up at the last query.",
+		[]string{"node"}, nil,
 	)
 
-	// Count of bricks for gluster volume
-	brick_count = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "glusterfs_brick_count",
-			Help: "Count of bricks for gluster volume",
-		},
-		[]string{"volume"},
+	volumeStatus = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_status"),
+		"Status code of requested volume.",
+		[]string{"node", "volume"}, nil,
 	)
 
-	// distribution count of bricks
-	distribution_count = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "glusterfs_nodes_active",
-			Help: "distribution count of bricks",
-		},
-		[]string{"volume"},
+	brickCount = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_count"),
+		"Number of bricks at last query.",
+		[]string{"node", "volume"}, nil,
+	)
+
+	peerCount = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "peer_count"),
+		"Number of peers at last query.",
+		[]string{"node"}, nil,
 	)
 )
 
-func init() {
-	// register metric to prometheus's default registry
-	prometheus.MustRegister(errno)
-	prometheus.MustRegister(volume_count)
-	prometheus.MustRegister(brick_count)
-	prometheus.MustRegister(distribution_count)
+type Exporter struct {
+	hostname string
+	path     string
+	volumes  []string
+}
+
+// Describes all the metrics exported by Gluster exporter. It implements prometheus.Collector.
+func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
+	ch <- up
+	ch <- volumeStatus
+	ch <- volumesCount
+	ch <- brickCount
+	ch <- peerCount
+}
+
+func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
+	// Execute gluster volume info
+	stdOutbuff := ExecGlusterCommand("volume", "info")
+	// Unmarshall returned bytes to CliOutput struct
+	vol, err := glusterVolumeInfoUnmarshall(stdOutbuff)
+	// Couldn't parse xml, so something is really wrong and up=0
+	if err != nil {
+		log.Errorf("couldn't parse xml: %v", err)
+		ch <- prometheus.MustNewConstMetric(
+			up, prometheus.GaugeValue, 0.0, e.hostname,
+		)
+	}
+
+	// use OpErrno as indicator for up
+	if vol.OpErrno != 0 {
+		ch <- prometheus.MustNewConstMetric(
+			up, prometheus.GaugeValue, 0.0, e.hostname,
+		)
+	} else {
+		ch <- prometheus.MustNewConstMetric(
+			up, prometheus.GaugeValue, 1.0, e.hostname,
+		)
+	}
+
+	ch <- prometheus.MustNewConstMetric(
+		volumesCount, prometheus.GaugeValue, float64(vol.VolInfo.Volumes.Count), e.hostname,
+	)
+
+	for _, volume := range vol.VolInfo.Volumes.Volume {
+		if volume.Name == "_all" || ContainsVolume(e.volumes, volume.Name) {
+
+			ch <- prometheus.MustNewConstMetric(
+				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), e.hostname, volume.Name,
+			)
+
+			ch <- prometheus.MustNewConstMetric(
+				volumeStatus, prometheus.GaugeValue, float64(volume.Status), e.hostname, volume.Name,
+			)
+		}
+	}
+
+}
+
+func ContainsVolume(slice []string, element string) bool {
+	for _, a := range slice {
+		if a == element {
+			return true
+		}
+	}
+	return false
+}
+
+// comment
+func NewExporter(hostname, glusterExecPath, volumes_string string) (*Exporter, error) {
+	if len(glusterExecPath) < 1 {
+		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
+	}
+	volumes := strings.Split(volumes_string, ",")
+	if len(volumes) < 1 {
+		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumes_string)
+	}
+
+	return &Exporter{
+		hostname: hostname,
+		path:     glusterExecPath,
+		volumes:  volumes,
+	}, nil
 }
 
 func versionInfo() {
@@ -131,7 +201,8 @@ func versionInfo() {
 
 func ExecGlusterCommand(arg ...string) *bytes.Buffer {
 	stdoutBuffer := &bytes.Buffer{}
-	glusterExec := exec.Command(GLUSTER_CMD, arg...)
+	arg_xml := append(arg, "--xml")
+	glusterExec := exec.Command(GLUSTER_CMD, arg_xml...)
 	glusterExec.Stdout = stdoutBuffer
 	err := glusterExec.Run()
 
@@ -142,71 +213,48 @@ func ExecGlusterCommand(arg ...string) *bytes.Buffer {
 }
 
 // Unmarshall returned bytes to CliOutput struct
-func infoUnmarshall(cmdOutBuff *bytes.Buffer) CliOutput {
+func glusterVolumeInfoUnmarshall(cmdOutBuff *bytes.Buffer) (CliOutput, error) {
 	var vol CliOutput
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return vol, err
 	}
 	xml.Unmarshal(b, &vol)
-	return vol
+	return vol, nil
 }
 
-func GlusterVolumeInfo() {
-	// Execute gluster volume info
-	stdOutbuff := ExecGlusterCommand("volume", "info")
-
-	// Unmarshall returned bytes to CliOutput struct
-	vol := infoUnmarshall(stdOutbuff)
-
-	// set opErrno
-	errno.WithLabelValues().Set(float64(vol.OpErrno))
-	log.Debug("opErrno: %v", vol.OpErrno)
-
-	// set volume count
-	volume_count.WithLabelValues().Set(float64(vol.VolInfo.Volumes.Count))
-	log.Debug("volume_count: %v", vol.VolInfo.Volumes.Count)
-
-	// Volume based values
-	for _, v := range vol.VolInfo.Volumes.Volume {
-		// brick count with volume label
-		brick_count.WithLabelValues(v.Name).Set(float64(v.BrickCount))
-		log.Debug("opErrno: %v", vol.OpErrno)
-
-		// distribution count with volume label
-		distribution_count.WithLabelValues(v.Name).Set(float64(v.DistCount))
-		log.Debug("opErrno: %v", vol.OpErrno)
-	}
-}
-
-func GlusterVolumeProfile(sec_int int) {
-	// Gluster Profile
-
-	// Get gluster volumes, then call gluster profile on every volume
-
-	//  gluster volume profile gv_leoticket info cumulative --xml
-	//cmd_profile := exec.Command("/usr/sbin/gluster", "volume", "profile", "gv_leoticket", "info", "cumulative", "--xml")
+func init() {
+	prometheus.MustRegister(version.NewCollector("gluster_exporter"))
 }
 
 func main() {
 
 	// commandline arguments
 	var (
-		metricPath  = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
-		addr        = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
-		version_tag = flag.Bool("version", false, "Prints version information")
+		glusterPath    = flag.String("gluster_executable_path", GLUSTER_CMD, "Path to gluster executable.")
+		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
+		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
+		showVersion    = flag.Bool("version", false, "Prints version information")
+		glusterVolumes = flag.String("volumes", "_all", "Comma seperated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
 	)
-
 	flag.Parse()
 
-	if *version_tag {
+	if *showVersion {
 		versionInfo()
 	}
 
-	log.Info("GlusterFS Metrics Exporter v", VERSION)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatal(err)
+	}
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes)
+	if err != nil {
+		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
+	}
+	prometheus.MustRegister(exporter)
 
-	// gluster volume info
-	go GlusterVolumeInfo()
+	log.Info("GlusterFS Metrics Exporter v", VERSION)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -219,5 +267,5 @@ func main() {
 			</html>
 		`))
 	})
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }
