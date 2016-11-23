@@ -20,13 +20,12 @@ import (
 	"os/exec"
 
 	"bytes"
-	"encoding/xml"
 	"fmt"
+	"github.com/ofesseler/gluster_exporter/structs"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -36,43 +35,6 @@ const (
 	VERSION     string = "0.1.0"
 	GLUSTER_CMD        = "/usr/sbin/gluster"
 )
-
-type CliOutput struct {
-	XMLName  xml.Name `xml:"cliOutput"`
-	OpRet    int      `xml:"opRet"`
-	OpErrno  int      `xml:"opErrno"`
-	OpErrstr string   `xml:"opErrstr"`
-	VolInfo  VolInfo  `xml:"volInfo"`
-}
-
-type VolInfo struct {
-	XMLName xml.Name `xml:"volInfo"`
-	Volumes Volumes  `xml:"volumes"`
-}
-
-type Volumes struct {
-	XMLName xml.Name `xml:"volumes"`
-	Volume  []Volume `xml:"volume"`
-	Count   int      `xml:"count"`
-}
-
-type Volume struct {
-	XMLName    xml.Name `xml:"volume"`
-	Name       string   `xml:"name"`
-	Id         string   `xml:"id"`
-	Status     int      `xml:"status"`
-	StatusStr  string   `xml:"statusStr"`
-	BrickCount int      `xml:"brickCount"`
-	Bricks     []Brick  `xml:"bricks"`
-	DistCount  int      `xml:"distCount"`
-}
-
-type Brick struct {
-	Uuid      string `xml:"brick>uuid"`
-	Name      string `xml:"brick>name"`
-	HostUuid  string `xml:"brick>hostUuid"`
-	IsArbiter int    `xml:"brick>isArbiter"`
-}
 
 var (
 	up = prometheus.NewDesc(
@@ -125,7 +87,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Execute gluster volume info
 	stdOutbuff := ExecGlusterCommand("volume", "info")
 	// Unmarshall returned bytes to CliOutput struct
-	vol, err := glusterVolumeInfoUnmarshall(stdOutbuff)
+	vol, err := structs.VolumeInfoXmlUnmarshall(stdOutbuff)
 	// Couldn't parse xml, so something is really wrong and up=0
 	if err != nil {
 		log.Errorf("couldn't parse xml: %v", err)
@@ -209,18 +171,6 @@ func ExecGlusterCommand(arg ...string) *bytes.Buffer {
 		log.Fatal(err)
 	}
 	return stdoutBuffer
-}
-
-// Unmarshall returned bytes to CliOutput struct
-func glusterVolumeInfoUnmarshall(cmdOutBuff *bytes.Buffer) (CliOutput, error) {
-	var vol CliOutput
-	b, err := ioutil.ReadAll(cmdOutBuff)
-	if err != nil {
-		log.Error(err)
-		return vol, err
-	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
 }
 
 func init() {
