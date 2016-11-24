@@ -151,3 +151,15 @@ func PeerStatusXmlUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXml, error) {
 	xml.Unmarshal(b, &vol)
 	return vol, nil
 }
+
+// Unmarshall cumulative profile of gluster volume profile
+func VolumeProfileGvInfoCumulativeXmlUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeProfileXml, error) {
+	var vol VolumeProfileXml
+	b, err := ioutil.ReadAll(cmdOutBuff)
+	if err != nil {
+		log.Error(err)
+		return vol, err
+	}
+	xml.Unmarshal(b, &vol)
+	return vol, nil
+}

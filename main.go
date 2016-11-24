@@ -21,7 +21,6 @@ import (
 
 	"bytes"
 	"fmt"
-	"github.com/ofesseler/gluster_exporter/structs"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
@@ -40,31 +39,31 @@ var (
 	up = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "up"),
 		"Was the last query of Gluster successful.",
-		[]string{"node"}, nil,
+		nil, nil,
 	)
 
 	volumesCount = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volumes_count"),
 		"How many volumes were up at the last query.",
-		[]string{"node"}, nil,
+		nil, nil,
 	)
 
 	volumeStatus = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volume_status"),
 		"Status code of requested volume.",
-		[]string{"node", "volume"}, nil,
+		[]string{"volume"}, nil,
 	)
 
 	brickCount = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "brick_count"),
 		"Number of bricks at last query.",
-		[]string{"node", "volume"}, nil,
+		[]string{"volume"}, nil,
 	)
 
-	peerCount = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "peer_count"),
-		"Number of peers at last query.",
-		[]string{"node"}, nil,
+	peersConnected = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "peers_connected"),
+		"Is peer connected to gluster cluster.",
+		nil, nil,
 	)
 )
 
@@ -80,49 +79,60 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- volumeStatus
 	ch <- volumesCount
 	ch <- brickCount
-	ch <- peerCount
+	ch <- peersConnected
 }
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-	// Execute gluster volume info
-	stdOutbuff := ExecGlusterCommand("volume", "info")
-	// Unmarshall returned bytes to CliOutput struct
-	vol, err := structs.VolumeInfoXmlUnmarshall(stdOutbuff)
+	// Collect metrics from volume info
+	volumeInfo, err := ExecVolumeInfo()
 	// Couldn't parse xml, so something is really wrong and up=0
 	if err != nil {
-		log.Errorf("couldn't parse xml: %v", err)
+		log.Errorf("couldn't parse xml volume info: %v", err)
 		ch <- prometheus.MustNewConstMetric(
-			up, prometheus.GaugeValue, 0.0, e.hostname,
+			up, prometheus.GaugeValue, 0.0,
 		)
 	}
 
 	// use OpErrno as indicator for up
-	if vol.OpErrno != 0 {
+	if volumeInfo.OpErrno != 0 {
 		ch <- prometheus.MustNewConstMetric(
-			up, prometheus.GaugeValue, 0.0, e.hostname,
+			up, prometheus.GaugeValue, 0.0,
 		)
 	} else {
 		ch <- prometheus.MustNewConstMetric(
-			up, prometheus.GaugeValue, 1.0, e.hostname,
+			up, prometheus.GaugeValue, 1.0,
 		)
 	}
 
 	ch <- prometheus.MustNewConstMetric(
-		volumesCount, prometheus.GaugeValue, float64(vol.VolInfo.Volumes.Count), e.hostname,
+		volumesCount, prometheus.GaugeValue, float64(volumeInfo.VolInfo.Volumes.Count),
 	)
 
-	for _, volume := range vol.VolInfo.Volumes.Volume {
+	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
 		if volume.Name == "_all" || ContainsVolume(e.volumes, volume.Name) {
 
 			ch <- prometheus.MustNewConstMetric(
-				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), e.hostname, volume.Name,
+				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), volume.Name,
 			)
 
 			ch <- prometheus.MustNewConstMetric(
-				volumeStatus, prometheus.GaugeValue, float64(volume.Status), e.hostname, volume.Name,
+				volumeStatus, prometheus.GaugeValue, float64(volume.Status), volume.Name,
 			)
 		}
 	}
+
+	// reads gluster peer status
+	peerStatus, err := ExecPeerStatus()
+	if err != nil {
+		log.Errorf("couldn't parse xml of peer status: %v", err)
+	}
+	count := 0
+	for range peerStatus.Peer {
+		count++
+	}
+	ch <- prometheus.MustNewConstMetric(
+		peersConnected, prometheus.GaugeValue, float64(count),
+	)
 
 }
 
