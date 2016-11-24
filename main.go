@@ -32,7 +32,7 @@ import (
 
 const (
 	namespace          = "gluster"
-	VERSION     string = "0.1.0"
+	VERSION     string = "0.1.2"
 	GLUSTER_CMD        = "/usr/sbin/gluster"
 )
 
