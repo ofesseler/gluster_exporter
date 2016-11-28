@@ -1,23 +1,11 @@
 package main
 
-import (
-	"bytes"
-	"io/ioutil"
-	"testing"
-)
+import "testing"
 
-func TestInfoUnmarshall(t *testing.T) {
-	testXmlPath := "test/gluster_volume_info.xml"
-	t.Log("Test xml unmarshal for gluster volume info with file: ", testXmlPath)
-	dat, err := ioutil.ReadFile(testXmlPath)
-
-	if err != nil {
-		t.Errorf("error reading testxml in Path: %v", testXmlPath)
+func TestContainsVolume(t *testing.T) {
+	expamle := "doge"
+	testSlice := []string{"wow", "such", expamle}
+	if !ContainsVolume(testSlice, expamle) {
+		t.Fatalf("Hasn't found %v in slice %v", expamle, testSlice)
 	}
-
-	glusterVolumeInfo, _ := glusterVolumeInfoUnmarshall(bytes.NewBuffer(dat))
-	if glusterVolumeInfo.OpErrno != 0 && glusterVolumeInfo.VolInfo.Volumes.Count == 2 {
-		t.Error("something wrong")
-	}
-	t.Log("gluster volume info test was sucessful.")
 }

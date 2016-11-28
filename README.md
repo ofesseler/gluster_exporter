@@ -5,7 +5,7 @@ Gluster exporter for Prometheus
 
 ```
 go get github.com/ofesseler/gluster_exporter
-./main
+./gluster_exporter
 ```
 
 ## Similar Projects
