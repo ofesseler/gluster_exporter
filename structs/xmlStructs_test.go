@@ -1,9 +1,9 @@
 package structs
 
 import (
-	"testing"
-	"io/ioutil"
 	"bytes"
+	"io/ioutil"
+	"testing"
 )
 
 func TestVolumeListXMLUnmarshall(t *testing.T) {
@@ -22,10 +22,10 @@ func TestVolumeListXMLUnmarshall(t *testing.T) {
 		t.Fatal("Volume List empty")
 	}
 	if volumeList.VolList.Count != 2 {
-		t.Logf("doesnt match volume count of 2: %v", volumeList)
+		t.Logf("doesn't match volume count of 2: %v", volumeList)
 	}
 
-	t.Log("gluster volume list test was sucessful.")
+	t.Log("gluster volume list test was successful.")
 }
 
 func TestInfoUnmarshall(t *testing.T) {
@@ -40,9 +40,8 @@ func TestInfoUnmarshall(t *testing.T) {
 	if glusterVolumeInfo.OpErrno != 0 && glusterVolumeInfo.VolInfo.Volumes.Count == 2 {
 		t.Fatal("something wrong")
 	}
-	t.Log("gluster volume info test was sucessful.")
+	t.Log("gluster volume info test was successful.")
 }
-
 
 func TestPeerStatusXmlUnmarshall(t *testing.T) {
 	testXmlPath := "../test/gluster_peer_status.xml"
@@ -77,5 +76,5 @@ func TestPeerStatusXmlUnmarshall(t *testing.T) {
 		t.Fatalf("Hostname in Peer does't match: %v", peerStatus.PeerStatus.Peer[0].Hostname)
 	}
 
-	t.Log("gluster peer status test was sucessful.")
+	t.Log("gluster peer status test was successful.")
 }

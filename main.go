@@ -195,7 +195,7 @@ func main() {
 		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
 		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		showVersion    = flag.Bool("version", false, "Prints version information")
-		glusterVolumes = flag.String("volumes", "_all", "Comma seperated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
+		glusterVolumes = flag.String("volumes", "_all", "Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
 	)
 	flag.Parse()
 

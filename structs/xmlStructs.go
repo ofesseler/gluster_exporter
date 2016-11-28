@@ -1,10 +1,10 @@
 package structs
 
 import (
-	"encoding/xml"
 	"bytes"
-	"io/ioutil"
+	"encoding/xml"
 	"github.com/prometheus/common/log"
+	"io/ioutil"
 )
 
 type VolumeInfoXml struct {
@@ -49,35 +49,35 @@ type VolumeListXml struct {
 	OpRet    int      `xml:"opRet"`
 	OpErrno  int      `xml:"opErrno"`
 	OpErrstr string   `xml:"opErrstr"`
-	VolList  VolList `xml:"volList"`
+	VolList  VolList  `xml:"volList"`
 }
 
 type VolList struct {
-	Count  int `xml:"count"`
+	Count  int      `xml:"count"`
 	Volume []string `xml:"volume"`
 }
 
 type PeerStatusXml struct {
-	XMLName    xml.Name `xml:"cliOutput"`
-	OpRet      int      `xml:"opRet"`
-	OpErrno    int      `xml:"opErrno"`
-	OpErrstr   string   `xml:"opErrstr"`
+	XMLName    xml.Name   `xml:"cliOutput"`
+	OpRet      int        `xml:"opRet"`
+	OpErrno    int        `xml:"opErrno"`
+	OpErrstr   string     `xml:"opErrstr"`
 	PeerStatus PeerStatus `xml:"peerStatus"`
 }
 
 type PeerStatus struct {
 	XMLName xml.Name `xml:"peerStatus"`
-	Peer    []Peer `xml:"peer"`
+	Peer    []Peer   `xml:"peer"`
 }
 
 type Peer struct {
-	XMLName   xml.Name `xml:"peer"`
-	Uuid      string `xml:"uuid"`
-	Hostname  string `xml:"hostname"`
+	XMLName   xml.Name  `xml:"peer"`
+	Uuid      string    `xml:"uuid"`
+	Hostname  string    `xml:"hostname"`
 	Hostnames Hostnames `xml:"hostnames"`
-	Connected int `xml:"connected"`
-	State     int `xml:"state"`
-	StateStr  string `xml:"stateStr"`
+	Connected int       `xml:"connected"`
+	State     int       `xml:"state"`
+	StateStr  string    `xml:"stateStr"`
 }
 
 type Hostnames struct {
@@ -85,35 +85,33 @@ type Hostnames struct {
 }
 
 type VolumeProfileXml struct {
-	XMLName xml.Name `xml:"cliOutput"`
-	OpRet      int      `xml:"opRet"`
-	OpErrno    int      `xml:"opErrno"`
-	OpErrstr   string   `xml:"opErrstr"`
+	XMLName    xml.Name   `xml:"cliOutput"`
+	OpRet      int        `xml:"opRet"`
+	OpErrno    int        `xml:"opErrno"`
+	OpErrstr   string     `xml:"opErrstr"`
 	VolProfile VolProfile `xml:"volProfile"`
 }
 
 type VolProfile struct {
-	Volname string `xml:"volname"`
-	BrickCount int `xml:"brickCount"`
-	Brick []BrickProfile `xml:"brick"`
+	Volname    string         `xml:"volname"`
+	BrickCount int            `xml:"brickCount"`
+	Brick      []BrickProfile `xml:"brick"`
 }
-
 
 type BrickProfile struct {
 	//XMLName xml.Name `xml:"brick"`
-	BrickName string `xml:"brickName"`
+	BrickName       string          `xml:"brickName"`
 	CumulativeStats CumulativeStats `xml:"cumulativeStats"`
 }
 
 type CumulativeStats struct {
 	//FopStats FopStats `xml:"fopStats"`
-	Duration int `xml:"duration"`
-	TotalRead int `xml:"totalRead"`
+	Duration   int `xml:"duration"`
+	TotalRead  int `xml:"totalRead"`
 	TotalWrite int `xml:"totalWrite"`
 }
 
 type FopStats struct {
-
 }
 
 // Unmarshall returned bytes to VolumeListXml struct
