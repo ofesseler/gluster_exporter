@@ -29,5 +29,4 @@ RUN chmod a+x /usr/bin/gluster-init.sh
 COPY gluster_exporter /usr/bin/gluster_exporter
 
 RUN /usr/bin/gluster-init.sh &
-#ENTRYPOINT /usr/bin/gluster-init.sh
-ENTRYPOINT /bin/bash
+ENTRYPOINT /usr/bin/gluster-init.sh

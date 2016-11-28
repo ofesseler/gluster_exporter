@@ -17,9 +17,7 @@ package main
 import (
 	"flag"
 	"net/http"
-	"os/exec"
 
-	"bytes"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -30,9 +28,10 @@ import (
 )
 
 const (
-	namespace          = "gluster"
-	VERSION     string = "0.1.3"
-	GLUSTER_CMD        = "/usr/sbin/gluster"
+	namespace         = "gluster"
+	appVersion string = "0.1.3"
+	// GlusterCmd is the default path to gluster binary
+	GlusterCmd = "/usr/sbin/gluster"
 )
 
 var (
@@ -67,13 +66,14 @@ var (
 	)
 )
 
+// Exporter holds name, path and volumes to be monitored
 type Exporter struct {
 	hostname string
 	path     string
 	volumes  []string
 }
 
-// Describes all the metrics exported by Gluster exporter. It implements prometheus.Collector.
+// Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- up
 	ch <- volumeStatus
@@ -82,6 +82,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- peersConnected
 }
 
+// Collect collects all the metrics
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Collect metrics from volume info
 	volumeInfo, err := ExecVolumeInfo()
@@ -136,6 +137,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 }
 
+// ContainsVolume checks a slice if it cpntains a element
 func ContainsVolume(slice []string, element string) bool {
 	for _, a := range slice {
 		if a == element {
@@ -145,14 +147,14 @@ func ContainsVolume(slice []string, element string) bool {
 	return false
 }
 
-// comment
-func NewExporter(hostname, glusterExecPath, volumes_string string) (*Exporter, error) {
+// NewExporter initialises exporter
+func NewExporter(hostname, glusterExecPath, volumesString string) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
-	volumes := strings.Split(volumes_string, ",")
+	volumes := strings.Split(volumesString, ",")
 	if len(volumes) < 1 {
-		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumes_string)
+		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumesString)
 	}
 
 	return &Exporter{
@@ -163,24 +165,11 @@ func NewExporter(hostname, glusterExecPath, volumes_string string) (*Exporter, e
 }
 
 func versionInfo() {
-	fmt.Println("Gluster Exporter Version: ", VERSION)
+	fmt.Println("Gluster Exporter Version: ", appVersion)
 	fmt.Println("Tested Gluster Version:   ", "3.8.5")
 	fmt.Println("Go Version:               ", version.GoVersion)
 
 	os.Exit(0)
-}
-
-func ExecGlusterCommand(arg ...string) *bytes.Buffer {
-	stdoutBuffer := &bytes.Buffer{}
-	arg_xml := append(arg, "--xml")
-	glusterExec := exec.Command(GLUSTER_CMD, arg_xml...)
-	glusterExec.Stdout = stdoutBuffer
-	err := glusterExec.Run()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	return stdoutBuffer
 }
 
 func init() {
@@ -191,7 +180,7 @@ func main() {
 
 	// commandline arguments
 	var (
-		glusterPath    = flag.String("gluster_executable_path", GLUSTER_CMD, "Path to gluster executable.")
+		glusterPath    = flag.String("gluster_executable_path", GlusterCmd, "Path to gluster executable.")
 		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
 		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		showVersion    = flag.Bool("version", false, "Prints version information")
@@ -213,14 +202,14 @@ func main() {
 	}
 	prometheus.MustRegister(exporter)
 
-	log.Info("GlusterFS Metrics Exporter v", VERSION)
+	log.Info("GlusterFS Metrics Exporter v", appVersion)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
-			<head><title>GlusterFS Exporter v` + VERSION + `</title></head>
+			<head><title>GlusterFS Exporter v` + appVersion + `</title></head>
 			<body>
-			<h1>GlusterFS Exporter v` + VERSION + `</h1>
+			<h1>GlusterFS Exporter v` + appVersion + `</h1>
 			<p><a href='` + *metricPath + `'>Metrics</a></p>
 			</body>
 			</html>

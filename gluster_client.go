@@ -9,8 +9,8 @@ import (
 
 func execGlusterCommand(arg ...string) *bytes.Buffer {
 	stdoutBuffer := &bytes.Buffer{}
-	arg_xml := append(arg, "--xml")
-	glusterExec := exec.Command(GLUSTER_CMD, arg_xml...)
+	argXML := append(arg, "--xml")
+	glusterExec := exec.Command(GlusterCmd, argXML...)
 	glusterExec.Stdout = stdoutBuffer
 	err := glusterExec.Run()
 
@@ -20,10 +20,12 @@ func execGlusterCommand(arg ...string) *bytes.Buffer {
 	return stdoutBuffer
 }
 
-func ExecVolumeInfo() (structs.VolumeInfoXml, error) {
+// ExecVolumeInfo executes "gluster volume info" at the local machine and
+// returns VolumeInfoXML struct and error
+func ExecVolumeInfo() (structs.VolumeInfoXML, error) {
 	args := []string{"volume", "info"}
 	bytesBuffer := execGlusterCommand(args...)
-	volumeInfo, err := structs.VolumeInfoXmlUnmarshall(bytesBuffer)
+	volumeInfo, err := structs.VolumeInfoXMLUnmarshall(bytesBuffer)
 	if err != nil {
 		log.Errorf("Something went wrong while unmarshalling xml: %v", err)
 		return volumeInfo, err
@@ -32,10 +34,12 @@ func ExecVolumeInfo() (structs.VolumeInfoXml, error) {
 	return volumeInfo, nil
 }
 
+// ExecVolumeList executes "gluster volume info" at the local machine and
+// returns VolumeList struct and error
 func ExecVolumeList() (structs.VolList, error) {
 	args := []string{"volume", "list"}
 	bytesBuffer := execGlusterCommand(args...)
-	volumeList, err := structs.VolumeListXmlUnmarshall(bytesBuffer)
+	volumeList, err := structs.VolumeListXMLUnmarshall(bytesBuffer)
 	if err != nil {
 		log.Errorf("Something went wrong while unmarshalling xml: %v", err)
 		return volumeList.VolList, err
@@ -44,10 +48,12 @@ func ExecVolumeList() (structs.VolList, error) {
 	return volumeList.VolList, nil
 }
 
+// ExecPeerStatus executes "gluster peer status" at the local machine and
+// returns PeerStatus struct and error
 func ExecPeerStatus() (structs.PeerStatus, error) {
 	args := []string{"peer", "status"}
 	bytesBuffer := execGlusterCommand(args...)
-	peerStatus, err := structs.PeerStatusXmlUnmarshall(bytesBuffer)
+	peerStatus, err := structs.PeerStatusXMLUnmarshall(bytesBuffer)
 	if err != nil {
 		log.Errorf("Something went wrong while unmarshalling xml: %v", err)
 		return peerStatus.PeerStatus, err
@@ -56,12 +62,14 @@ func ExecPeerStatus() (structs.PeerStatus, error) {
 	return peerStatus.PeerStatus, nil
 }
 
+// ExecVolumeProfileGvInfoCumulative executes "gluster volume {volume] profile info cumulative" at the local machine and
+// returns VolumeInfoXML struct and error
 func ExecVolumeProfileGvInfoCumulative(volumeName string) (structs.VolProfile, error) {
 	args := []string{"volume", "profile"}
 	args = append(args, volumeName)
 	args = append(args, "info", "cumulative")
 	bytesBuffer := execGlusterCommand(args...)
-	volumeProfile, err := structs.VolumeProfileGvInfoCumulativeXmlUnmarshall(bytesBuffer)
+	volumeProfile, err := structs.VolumeProfileGvInfoCumulativeXMLUnmarshall(bytesBuffer)
 	if err != nil {
 		log.Errorf("Something went wrong while unmarshalling xml: %v", err)
 		return volumeProfile.VolProfile, err
