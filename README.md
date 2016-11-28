@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ofesseler/gluster_exporter.svg?branch=dev)](https://travis-ci.org/ofesseler/gluster_exporter)
+[![CircleCI](https://circleci.com/gh/ofesseler/gluster_exporter/tree/dev.svg?style=svg)](https://circleci.com/gh/ofesseler/gluster_exporter/tree/dev)
 # gluster_exporter
 Gluster exporter for Prometheus
 
