@@ -29,7 +29,6 @@ import (
 
 const (
 	namespace         = "gluster"
-	appVersion string = "0.1.3"
 	// GlusterCmd is the default path to gluster binary
 	GlusterCmd = "/usr/sbin/gluster"
 )
@@ -165,7 +164,7 @@ func NewExporter(hostname, glusterExecPath, volumesString string) (*Exporter, er
 }
 
 func versionInfo() {
-	fmt.Println("Gluster Exporter Version: ", appVersion)
+	fmt.Println("Gluster Exporter Version: ", version.Version)
 	fmt.Println("Tested Gluster Version:   ", "3.8.5")
 	fmt.Println("Go Version:               ", version.GoVersion)
 
@@ -202,14 +201,14 @@ func main() {
 	}
 	prometheus.MustRegister(exporter)
 
-	log.Info("GlusterFS Metrics Exporter v", appVersion)
+	log.Info("GlusterFS Metrics Exporter v", version.Version)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
-			<head><title>GlusterFS Exporter v` + appVersion + `</title></head>
+			<head><title>GlusterFS Exporter v` + version.Version + `</title></head>
 			<body>
-			<h1>GlusterFS Exporter v` + appVersion + `</h1>
+			<h1>GlusterFS Exporter v` + version.Version + `</h1>
 			<p><a href='` + *metricPath + `'>Metrics</a></p>
 			</body>
 			</html>
