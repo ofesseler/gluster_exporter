@@ -58,6 +58,24 @@ var (
 		[]string{"volume"}, nil,
 	)
 
+	brickDuration = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_duration"),
+		"Time running volume brick.",
+		[]string{"volume", "brick"}, nil,
+	)
+
+	brickDataRead = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_data_read"),
+		"Total amount of data read by brick.",
+		[]string{"volume", "brick"}, nil,
+	)
+
+	brickDataWritten = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_data_written"),
+		"Total amount of data written by brick.",
+		[]string{"volume", "brick"}, nil,
+	)
+
 	peersConnected = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "peers_connected"),
 		"Is peer connected to gluster cluster.",
@@ -70,6 +88,7 @@ type Exporter struct {
 	hostname string
 	path     string
 	volumes  []string
+	profile  bool
 }
 
 // Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
@@ -78,6 +97,9 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- volumeStatus
 	ch <- volumesCount
 	ch <- brickCount
+	ch <- brickDuration
+	ch <- brickDataRead
+	ch <- brickDataWritten
 	ch <- peersConnected
 }
 
@@ -134,6 +156,33 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		peersConnected, prometheus.GaugeValue, float64(count),
 	)
 
+	// reads profile info
+	if e.profile {
+		for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
+			if e.volumes[0] == "_all" || ContainsVolume(e.volumes, volume.Name) {
+				volumeProfile, err := ExecVolumeProfileGvInfoCumulative(volume.Name)
+				if err != nil {
+					log.Errorf("Error while executing or marshalling gluster profile output: %v", err)
+				}
+				for _, brick := range volumeProfile.Brick {
+					if strings.HasPrefix(brick.BrickName, e.hostname) {
+						ch <- prometheus.MustNewConstMetric(
+							brickDuration, prometheus.CounterValue, float64(brick.CumulativeStats.Duration), volume.Name, brick.BrickName,
+						)
+
+						ch <- prometheus.MustNewConstMetric(
+							brickDataRead, prometheus.CounterValue, float64(brick.CumulativeStats.TotalRead), volume.Name, brick.BrickName,
+						)
+
+						ch <- prometheus.MustNewConstMetric(
+							brickDataWritten, prometheus.CounterValue, float64(brick.CumulativeStats.TotalWrite), volume.Name, brick.BrickName,
+						)
+					}
+
+				}
+			}
+		}
+	}
 }
 
 // ContainsVolume checks a slice if it cpntains a element
@@ -147,7 +196,7 @@ func ContainsVolume(slice []string, element string) bool {
 }
 
 // NewExporter initialises exporter
-func NewExporter(hostname, glusterExecPath, volumesString string) (*Exporter, error) {
+func NewExporter(hostname, glusterExecPath, volumesString string, profile bool) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
@@ -160,6 +209,7 @@ func NewExporter(hostname, glusterExecPath, volumesString string) (*Exporter, er
 		hostname: hostname,
 		path:     glusterExecPath,
 		volumes:  volumes,
+		profile:  profile,
 	}, nil
 }
 
@@ -181,6 +231,7 @@ func main() {
 		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		showVersion    = flag.Bool("version", false, "Prints version information")
 		glusterVolumes = flag.String("volumes", "_all", "Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
+		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
 	)
 	flag.Parse()
 
@@ -192,7 +243,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes)
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile)
 	if err != nil {
 		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
 	}
