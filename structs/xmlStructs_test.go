@@ -40,6 +40,15 @@ func TestInfoUnmarshall(t *testing.T) {
 	if glusterVolumeInfo.OpErrno != 0 && glusterVolumeInfo.VolInfo.Volumes.Count == 2 {
 		t.Fatal("something wrong")
 	}
+	for _, volume := range glusterVolumeInfo.VolInfo.Volumes.Volume {
+		if volume.Status != 1 {
+			t.Errorf("Status %v expected but got %v", 1, volume.Status)
+		}
+		if volume.Name == "" || len(volume.Name) < 1 {
+			t.Errorf("Not empty name of Volume expected, response was %v", volume.Name)
+		}
+		t.Logf("Volume.Name: %v volume.Status: %v", volume.Name, volume.Status)
+	}
 	t.Log("gluster volume info test was successful.")
 }
 

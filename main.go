@@ -109,7 +109,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	)
 
 	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-		if volume.Name == "_all" || ContainsVolume(e.volumes, volume.Name) {
+		if e.volumes[0] == "_all" || ContainsVolume(e.volumes, volume.Name) {
 
 			ch <- prometheus.MustNewConstMetric(
 				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), volume.Name,
