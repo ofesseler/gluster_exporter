@@ -164,10 +164,7 @@ func NewExporter(hostname, glusterExecPath, volumesString string) (*Exporter, er
 }
 
 func versionInfo() {
-	fmt.Println("Gluster Exporter Version: ", version.Version)
-	fmt.Println("Tested Gluster Version:   ", "3.8.5")
-	fmt.Println("Go Version:               ", version.GoVersion)
-
+	fmt.Println(version.Print("gluster_exporter"))
 	os.Exit(0)
 }
 
