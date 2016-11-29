@@ -28,9 +28,9 @@ import (
 )
 
 const (
-	namespace         = "gluster"
 	// GlusterCmd is the default path to gluster binary
 	GlusterCmd = "/usr/sbin/gluster"
+	namespace  = "gluster"
 )
 
 var (
