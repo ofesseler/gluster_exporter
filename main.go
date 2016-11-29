@@ -17,9 +17,7 @@ package main
 import (
 	"flag"
 	"net/http"
-	"os/exec"
 
-	"bytes"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -30,9 +28,9 @@ import (
 )
 
 const (
-	namespace          = "gluster"
-	VERSION     string = "0.1.2"
-	GLUSTER_CMD        = "/usr/sbin/gluster"
+	// GlusterCmd is the default path to gluster binary
+	GlusterCmd = "/usr/sbin/gluster"
+	namespace  = "gluster"
 )
 
 var (
@@ -60,6 +58,24 @@ var (
 		[]string{"volume"}, nil,
 	)
 
+	brickDuration = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_duration"),
+		"Time running volume brick.",
+		[]string{"volume", "brick"}, nil,
+	)
+
+	brickDataRead = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_data_read"),
+		"Total amount of data read by brick.",
+		[]string{"volume", "brick"}, nil,
+	)
+
+	brickDataWritten = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_data_written"),
+		"Total amount of data written by brick.",
+		[]string{"volume", "brick"}, nil,
+	)
+
 	peersConnected = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "peers_connected"),
 		"Is peer connected to gluster cluster.",
@@ -67,21 +83,27 @@ var (
 	)
 )
 
+// Exporter holds name, path and volumes to be monitored
 type Exporter struct {
 	hostname string
 	path     string
 	volumes  []string
+	profile  bool
 }
 
-// Describes all the metrics exported by Gluster exporter. It implements prometheus.Collector.
+// Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- up
 	ch <- volumeStatus
 	ch <- volumesCount
 	ch <- brickCount
+	ch <- brickDuration
+	ch <- brickDataRead
+	ch <- brickDataWritten
 	ch <- peersConnected
 }
 
+// Collect collects all the metrics
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Collect metrics from volume info
 	volumeInfo, err := ExecVolumeInfo()
@@ -109,7 +131,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	)
 
 	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-		if volume.Name == "_all" || ContainsVolume(e.volumes, volume.Name) {
+		if e.volumes[0] == "_all" || ContainsVolume(e.volumes, volume.Name) {
 
 			ch <- prometheus.MustNewConstMetric(
 				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), volume.Name,
@@ -134,8 +156,36 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		peersConnected, prometheus.GaugeValue, float64(count),
 	)
 
+	// reads profile info
+	if e.profile {
+		for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
+			if e.volumes[0] == "_all" || ContainsVolume(e.volumes, volume.Name) {
+				volumeProfile, err := ExecVolumeProfileGvInfoCumulative(volume.Name)
+				if err != nil {
+					log.Errorf("Error while executing or marshalling gluster profile output: %v", err)
+				}
+				for _, brick := range volumeProfile.Brick {
+					if strings.HasPrefix(brick.BrickName, e.hostname) {
+						ch <- prometheus.MustNewConstMetric(
+							brickDuration, prometheus.CounterValue, float64(brick.CumulativeStats.Duration), volume.Name, brick.BrickName,
+						)
+
+						ch <- prometheus.MustNewConstMetric(
+							brickDataRead, prometheus.CounterValue, float64(brick.CumulativeStats.TotalRead), volume.Name, brick.BrickName,
+						)
+
+						ch <- prometheus.MustNewConstMetric(
+							brickDataWritten, prometheus.CounterValue, float64(brick.CumulativeStats.TotalWrite), volume.Name, brick.BrickName,
+						)
+					}
+
+				}
+			}
+		}
+	}
 }
 
+// ContainsVolume checks a slice if it cpntains a element
 func ContainsVolume(slice []string, element string) bool {
 	for _, a := range slice {
 		if a == element {
@@ -145,42 +195,27 @@ func ContainsVolume(slice []string, element string) bool {
 	return false
 }
 
-// comment
-func NewExporter(hostname, glusterExecPath, volumes_string string) (*Exporter, error) {
+// NewExporter initialises exporter
+func NewExporter(hostname, glusterExecPath, volumesString string, profile bool) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
-	volumes := strings.Split(volumes_string, ",")
+	volumes := strings.Split(volumesString, ",")
 	if len(volumes) < 1 {
-		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumes_string)
+		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumesString)
 	}
 
 	return &Exporter{
 		hostname: hostname,
 		path:     glusterExecPath,
 		volumes:  volumes,
+		profile:  profile,
 	}, nil
 }
 
 func versionInfo() {
-	fmt.Println("Gluster Exporter Version: ", VERSION)
-	fmt.Println("Tested Gluster Version:   ", "3.8.5")
-	fmt.Println("Go Version:               ", version.GoVersion)
-
+	fmt.Println(version.Print("gluster_exporter"))
 	os.Exit(0)
-}
-
-func ExecGlusterCommand(arg ...string) *bytes.Buffer {
-	stdoutBuffer := &bytes.Buffer{}
-	arg_xml := append(arg, "--xml")
-	glusterExec := exec.Command(GLUSTER_CMD, arg_xml...)
-	glusterExec.Stdout = stdoutBuffer
-	err := glusterExec.Run()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	return stdoutBuffer
 }
 
 func init() {
@@ -191,11 +226,12 @@ func main() {
 
 	// commandline arguments
 	var (
-		glusterPath    = flag.String("gluster_executable_path", GLUSTER_CMD, "Path to gluster executable.")
+		glusterPath    = flag.String("gluster_executable_path", GlusterCmd, "Path to gluster executable.")
 		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
 		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		showVersion    = flag.Bool("version", false, "Prints version information")
-		glusterVolumes = flag.String("volumes", "_all", "Comma seperated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
+		glusterVolumes = flag.String("volumes", "_all", "Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
+		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
 	)
 	flag.Parse()
 
@@ -207,20 +243,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes)
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile)
 	if err != nil {
 		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
 	}
 	prometheus.MustRegister(exporter)
 
-	log.Info("GlusterFS Metrics Exporter v", VERSION)
+	log.Info("GlusterFS Metrics Exporter v", version.Version)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
-			<head><title>GlusterFS Exporter v` + VERSION + `</title></head>
+			<head><title>GlusterFS Exporter v` + version.Version + `</title></head>
 			<body>
-			<h1>GlusterFS Exporter v` + VERSION + `</h1>
+			<h1>GlusterFS Exporter v` + version.Version + `</h1>
 			<p><a href='` + *metricPath + `'>Metrics</a></p>
 			</body>
 			</html>

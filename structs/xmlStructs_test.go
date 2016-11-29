@@ -1,19 +1,19 @@
 package structs
 
 import (
-	"testing"
-	"io/ioutil"
 	"bytes"
+	"io/ioutil"
+	"testing"
 )
 
 func TestVolumeListXMLUnmarshall(t *testing.T) {
-	testXmlPath := "../test/gluster_volume_list.xml"
-	dat, err := ioutil.ReadFile(testXmlPath)
+	testXMLPath := "../test/gluster_volume_list.xml"
+	dat, err := ioutil.ReadFile(testXMLPath)
 
 	if err != nil {
-		t.Errorf("error reading testxml in Path: %v", testXmlPath)
+		t.Errorf("error reading testxml in Path: %v", testXMLPath)
 	}
-	volumeList, err := VolumeListXmlUnmarshall(bytes.NewBuffer(dat))
+	volumeList, err := VolumeListXMLUnmarshall(bytes.NewBuffer(dat))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,37 +22,45 @@ func TestVolumeListXMLUnmarshall(t *testing.T) {
 		t.Fatal("Volume List empty")
 	}
 	if volumeList.VolList.Count != 2 {
-		t.Logf("doesnt match volume count of 2: %v", volumeList)
+		t.Logf("doesn't match volume count of 2: %v", volumeList)
 	}
 
-	t.Log("gluster volume list test was sucessful.")
+	t.Log("gluster volume list test was successful.")
 }
 
 func TestInfoUnmarshall(t *testing.T) {
-	testXmlPath := "../test/gluster_volume_info.xml"
-	dat, err := ioutil.ReadFile(testXmlPath)
+	testXMLPath := "../test/gluster_volume_info.xml"
+	dat, err := ioutil.ReadFile(testXMLPath)
 
 	if err != nil {
-		t.Fatalf("error reading testxml in Path: %v", testXmlPath)
+		t.Fatalf("error reading testxml in Path: %v", testXMLPath)
 	}
 
-	glusterVolumeInfo, _ := VolumeInfoXmlUnmarshall(bytes.NewBuffer(dat))
+	glusterVolumeInfo, _ := VolumeInfoXMLUnmarshall(bytes.NewBuffer(dat))
 	if glusterVolumeInfo.OpErrno != 0 && glusterVolumeInfo.VolInfo.Volumes.Count == 2 {
 		t.Fatal("something wrong")
 	}
-	t.Log("gluster volume info test was sucessful.")
+	for _, volume := range glusterVolumeInfo.VolInfo.Volumes.Volume {
+		if volume.Status != 1 {
+			t.Errorf("Status %v expected but got %v", 1, volume.Status)
+		}
+		if volume.Name == "" || len(volume.Name) < 1 {
+			t.Errorf("Not empty name of Volume expected, response was %v", volume.Name)
+		}
+		t.Logf("Volume.Name: %v volume.Status: %v", volume.Name, volume.Status)
+	}
+	t.Log("gluster volume info test was successful.")
 }
 
-
-func TestPeerStatusXmlUnmarshall(t *testing.T) {
-	testXmlPath := "../test/gluster_peer_status.xml"
-	t.Log("Test xml unmarshal for 'gluster peer status' with file: ", testXmlPath)
-	dat, err := ioutil.ReadFile(testXmlPath)
+func TestPeerStatusXMLUnmarshall(t *testing.T) {
+	testXMLPath := "../test/gluster_peer_status.xml"
+	t.Log("Test xml unmarshal for 'gluster peer status' with file: ", testXMLPath)
+	dat, err := ioutil.ReadFile(testXMLPath)
 	exp := 0
 	if err != nil {
-		t.Errorf("error reading testxml in Path: %v", testXmlPath)
+		t.Errorf("error reading testxml in Path: %v", testXMLPath)
 	}
-	peerStatus, err := PeerStatusXmlUnmarshall(bytes.NewBuffer(dat))
+	peerStatus, err := PeerStatusXMLUnmarshall(bytes.NewBuffer(dat))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,10 +80,10 @@ func TestPeerStatusXmlUnmarshall(t *testing.T) {
 		t.Fatalf("Number of peers is not 3: %v", len(peerStatus.PeerStatus.Peer))
 	}
 
-	exp_string := "node2.example.local"
-	if peerStatus.PeerStatus.Peer[0].Hostname != exp_string {
+	expString := "node2.example.local"
+	if peerStatus.PeerStatus.Peer[0].Hostname != expString {
 		t.Fatalf("Hostname in Peer does't match: %v", peerStatus.PeerStatus.Peer[0].Hostname)
 	}
 
-	t.Log("gluster peer status test was sucessful.")
+	t.Log("gluster peer status test was successful.")
 }

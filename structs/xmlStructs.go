@@ -1,13 +1,14 @@
 package structs
 
 import (
-	"encoding/xml"
 	"bytes"
-	"io/ioutil"
+	"encoding/xml"
 	"github.com/prometheus/common/log"
+	"io/ioutil"
 )
 
-type VolumeInfoXml struct {
+// VolumeInfoXML struct repesents cliOutput element of "gluster volume info" command
+type VolumeInfoXML struct {
 	XMLName  xml.Name `xml:"cliOutput"`
 	OpRet    int      `xml:"opRet"`
 	OpErrno  int      `xml:"opErrno"`
@@ -15,21 +16,24 @@ type VolumeInfoXml struct {
 	VolInfo  VolInfo  `xml:"volInfo"`
 }
 
+// VolInfo element of "gluster volume info" command
 type VolInfo struct {
 	XMLName xml.Name `xml:"volInfo"`
 	Volumes Volumes  `xml:"volumes"`
 }
 
+// Volumes element of "gluster volume info" command
 type Volumes struct {
 	XMLName xml.Name `xml:"volumes"`
 	Volume  []Volume `xml:"volume"`
 	Count   int      `xml:"count"`
 }
 
+// Volume element of "gluster volume info" command
 type Volume struct {
 	XMLName    xml.Name `xml:"volume"`
 	Name       string   `xml:"name"`
-	Id         string   `xml:"id"`
+	ID         string   `xml:"id"`
 	Status     int      `xml:"status"`
 	StatusStr  string   `xml:"statusStr"`
 	BrickCount int      `xml:"brickCount"`
@@ -37,88 +41,98 @@ type Volume struct {
 	DistCount  int      `xml:"distCount"`
 }
 
+// Brick element of "gluster volume info" command
 type Brick struct {
-	Uuid      string `xml:"brick>uuid"`
+	UUID      string `xml:"brick>uuid"`
 	Name      string `xml:"brick>name"`
-	HostUuid  string `xml:"brick>hostUuid"`
+	HostUUID  string `xml:"brick>hostUuid"`
 	IsArbiter int    `xml:"brick>isArbiter"`
 }
 
-type VolumeListXml struct {
+// VolumeListXML struct repesents cliOutput element of "gluster volume list" command
+type VolumeListXML struct {
 	XMLName  xml.Name `xml:"cliOutput"`
 	OpRet    int      `xml:"opRet"`
 	OpErrno  int      `xml:"opErrno"`
 	OpErrstr string   `xml:"opErrstr"`
-	VolList  VolList `xml:"volList"`
+	VolList  VolList  `xml:"volList"`
 }
 
+// VolList element of "gluster volume list" command
 type VolList struct {
-	Count  int `xml:"count"`
+	Count  int      `xml:"count"`
 	Volume []string `xml:"volume"`
 }
 
-type PeerStatusXml struct {
-	XMLName    xml.Name `xml:"cliOutput"`
-	OpRet      int      `xml:"opRet"`
-	OpErrno    int      `xml:"opErrno"`
-	OpErrstr   string   `xml:"opErrstr"`
+// PeerStatusXML struct represents cliOutput element of "gluster peer status" command
+type PeerStatusXML struct {
+	XMLName    xml.Name   `xml:"cliOutput"`
+	OpRet      int        `xml:"opRet"`
+	OpErrno    int        `xml:"opErrno"`
+	OpErrstr   string     `xml:"opErrstr"`
 	PeerStatus PeerStatus `xml:"peerStatus"`
 }
 
+// PeerStatus element of "gluster peer status" command
 type PeerStatus struct {
 	XMLName xml.Name `xml:"peerStatus"`
-	Peer    []Peer `xml:"peer"`
+	Peer    []Peer   `xml:"peer"`
 }
 
+// Peer element of "gluster peer status" command
 type Peer struct {
-	XMLName   xml.Name `xml:"peer"`
-	Uuid      string `xml:"uuid"`
-	Hostname  string `xml:"hostname"`
+	XMLName   xml.Name  `xml:"peer"`
+	UUID      string    `xml:"uuid"`
+	Hostname  string    `xml:"hostname"`
 	Hostnames Hostnames `xml:"hostnames"`
-	Connected int `xml:"connected"`
-	State     int `xml:"state"`
-	StateStr  string `xml:"stateStr"`
+	Connected int       `xml:"connected"`
+	State     int       `xml:"state"`
+	StateStr  string    `xml:"stateStr"`
 }
 
+// Hostnames element of "gluster peer status" command
 type Hostnames struct {
 	Hostname string `xml:"hostname"`
 }
 
-type VolumeProfileXml struct {
-	XMLName xml.Name `xml:"cliOutput"`
-	OpRet      int      `xml:"opRet"`
-	OpErrno    int      `xml:"opErrno"`
-	OpErrstr   string   `xml:"opErrstr"`
+// VolumeProfileXML struct repesents cliOutput element of "gluster volume {volume} profile" command
+type VolumeProfileXML struct {
+	XMLName    xml.Name   `xml:"cliOutput"`
+	OpRet      int        `xml:"opRet"`
+	OpErrno    int        `xml:"opErrno"`
+	OpErrstr   string     `xml:"opErrstr"`
 	VolProfile VolProfile `xml:"volProfile"`
 }
 
+// VolProfile element of "gluster volume {volume} profile" command
 type VolProfile struct {
-	Volname string `xml:"volname"`
-	BrickCount int `xml:"brickCount"`
-	Brick []BrickProfile `xml:"brick"`
+	Volname    string         `xml:"volname"`
+	BrickCount int            `xml:"brickCount"`
+	Brick      []BrickProfile `xml:"brick"`
 }
 
-
+// BrickProfile struct for element brick of "gluster volume {volume} profile" command
 type BrickProfile struct {
 	//XMLName xml.Name `xml:"brick"`
-	BrickName string `xml:"brickName"`
+	BrickName       string          `xml:"brickName"`
 	CumulativeStats CumulativeStats `xml:"cumulativeStats"`
 }
 
+// CumulativeStats element of "gluster volume {volume} profile" command
 type CumulativeStats struct {
 	//FopStats FopStats `xml:"fopStats"`
-	Duration int `xml:"duration"`
-	TotalRead int `xml:"totalRead"`
+	Duration   int `xml:"duration"`
+	TotalRead  int `xml:"totalRead"`
 	TotalWrite int `xml:"totalWrite"`
 }
 
+// FopStats element of "gluster volume {volume} profile" command
 type FopStats struct {
-
 }
 
-// Unmarshall returned bytes to VolumeListXml struct
-func VolumeListXmlUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeListXml, error) {
-	var vol VolumeListXml
+// VolumeListXMLUnmarshall unmarshalls bytes to VolumeListXML struct
+func VolumeListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeListXML, error) {
+	var vol VolumeListXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
@@ -128,9 +142,9 @@ func VolumeListXmlUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeListXml, error) {
 	return vol, nil
 }
 
-// Unmarshall returned bytes to VolumeInfoXml struct
-func VolumeInfoXmlUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeInfoXml, error) {
-	var vol VolumeInfoXml
+// VolumeInfoXMLUnmarshall unmarshalls bytes to VolumeInfoXML struct
+func VolumeInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeInfoXML, error) {
+	var vol VolumeInfoXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
@@ -140,9 +154,9 @@ func VolumeInfoXmlUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeInfoXml, error) {
 	return vol, nil
 }
 
-// Unmarshall returned bytes to PeerStatusXml struct
-func PeerStatusXmlUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXml, error) {
-	var vol PeerStatusXml
+// PeerStatusXMLUnmarshall unmarshalls bytes to PeerStatusXML struct
+func PeerStatusXMLUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXML, error) {
+	var vol PeerStatusXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
@@ -152,9 +166,9 @@ func PeerStatusXmlUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXml, error) {
 	return vol, nil
 }
 
-// Unmarshall cumulative profile of gluster volume profile
-func VolumeProfileGvInfoCumulativeXmlUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeProfileXml, error) {
-	var vol VolumeProfileXml
+// VolumeProfileGvInfoCumulativeXMLUnmarshall unmarshalls cumulative profile of gluster volume profile
+func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeProfileXML, error) {
+	var vol VolumeProfileXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
