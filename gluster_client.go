@@ -2,9 +2,10 @@ package main
 
 import (
 	"bytes"
+	"os/exec"
+
 	"github.com/ofesseler/gluster_exporter/structs"
 	"github.com/prometheus/common/log"
-	"os/exec"
 )
 
 func execGlusterCommand(arg ...string) *bytes.Buffer {
