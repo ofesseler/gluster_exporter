@@ -9,7 +9,8 @@ info:
 	@echo "gotest: run go tests and reformats"
 
 build: gotest
-	$(GO) build -o gluster_exporter
+	$(PROMU) build
+	#$(GO) build -o gluster_exporter
 
 docker: gotest build
 	docker build -t gluster-exporter-test .
