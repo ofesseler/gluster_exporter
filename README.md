@@ -3,7 +3,7 @@
 # gluster_exporter
 Gluster exporter for Prometheus
 
-## Installation 
+## Installation
 
 ```
 go get github.com/ofesseler/gluster_exporter
@@ -11,29 +11,29 @@ go get github.com/ofesseler/gluster_exporter
 ```
 
 ## Usage of `gluster_exporter`
-Help is displayed with `-h`. 
+Help is displayed with `-h`.
 
-| Option                   | Default             | Description 
-| ------------------------ | ------------------- | ----------------- 
-| -help                    | -                   | Displays usage. 
-| -gluster_executable_path | `/usr/sbin/gluster` | Path to gluster executable. 
-| -listen-address          | `:9189`             | The address to listen on for HTTP requests. 
-| -log.format              | `logger:stderr`     | Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true" 
-| -log.level               | `info`              | Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal] 
-| -metrics-path            | `/metrics`          | URL Endpoint for metrics 
-| -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile true' to get more metrics 
+| Option                   | Default             | Description
+| ------------------------ | ------------------- | -----------------
+| -help                    | -                   | Displays usage.
+| -gluster_executable_path | `/usr/sbin/gluster` | Path to gluster executable.
+| -listen-address          | `:9189`             | The address to listen on for HTTP requests.
+| -log.format              | `logger:stderr`     | Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true"
+| -log.level               | `info`              | Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal]
+| -metrics-path            | `/metrics`          | URL Endpoint for metrics
+| -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile true' to get more metrics
 | -version                 | -                   | Prints version information
 | -volumes                 | `_all`              | Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics
 
 
-## Make 
+## Make
 
 
 ```
 build: Go build
 docker: build and run in docker container
 
-``` 
+```
 
 **build**: runs go build for gluster_exporter
 
@@ -62,7 +62,7 @@ Commands within the exporter are executed with `--xml`.
 | peerStatus.peer.connected | Gauge    | implemented |
 
 ### Command: `gluster volume list`
-with `gluster volume info` this is obsolete 
+with `gluster volume info` this is obsolete
 
 | Name           | type     | impl. state |
 | -------------- | -------- | ------------|
@@ -73,17 +73,24 @@ with `gluster volume info` this is obsolete
 
 | Name                                               | type     | impl. state |
 | -------------------------------------------------- | -------- | ------------|
-| volProfile.profileOp                               | Gauge    | pending     | 
+| volProfile.profileOp                               | Gauge    | pending     |
 | volProfile.brickCount                              | Gauge    | pending     |
 | volProfile.cumulativeStatus.duration               | Count    | implemented     |
 | volProfile.cumulativeStatus.totalRead              | Count    | implemented     |
 | volProfile.cumulativeStatus.totalWrite             | Count    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending | 
+| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending |
 | volProfile.cumulativeStats.fopStats.fop.hits       | count    | pending     |
 | volProfile.cumulativeStats.fopStats.fop.avgLatency | Gauge    | pending     |
 | volProfile.cumulativeStats.fopStats.fop.minLatency | Gauge    | pending     |
 | volProfile.cumulativeStats.fopStats.fop.maxLatency | Gauge    | pending     |
 
+## Troubleshooting
+If the following message appears while trying to get some information out of your gluster. Increase scrape interval in `prometheus.yml` to at least 30s.
+
+```
+Another transaction is in progress for gv_cluster. Please try again after sometime
+```
+
 ## Similar Projects
-glusterfs exporter for prometheus written in rust. 
+glusterfs exporter for prometheus written in rust.
 - https://github.com/ibotty/glusterfs-exporter
