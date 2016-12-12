@@ -87,3 +87,57 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 
 	t.Log("gluster peer status test was successful.")
 }
+
+func TestVolumeProfileGvInfoCumulativeXMLUnmarshall(t *testing.T) {
+	testXMLPath := "../test/gluster_volume_profile_gv_test_info_cumulative.xml"
+	t.Log("Test xml unmarshal for 'gluster volume profile gv_test info' with file: ", testXMLPath)
+	dat, err := ioutil.ReadFile(testXMLPath)
+
+	if err != nil {
+		t.Fatal("Could not read test data from xml.", err)
+	}
+
+	profileVolumeCumulative, err := VolumeProfileGvInfoCumulativeXMLUnmarshall(bytes.NewBuffer(dat))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expOpErr := 0
+	if profileVolumeCumulative.OpErrno != 0 {
+		t.Errorf("Expected value is %v and got %v", expOpErr, profileVolumeCumulative.OpErrno)
+	}
+
+	fops := profileVolumeCumulative.VolProfile.Brick[0].CumulativeStats.FopStats.Fop
+
+	expFopLen := 11
+	fopLen := len(fops)
+	if fopLen != expFopLen {
+		t.Errorf("Expected FopLength of %v and got %v.", expFopLen, fopLen)
+	}
+
+	expFopName := "WRITE"
+	expFopHits := 58
+	expAvgLatency := 224.5
+	expMinLatency := 183.0
+	expMaxLatency := 807.0
+
+	if fops[0].Name != expFopName {
+		t.Errorf("expected %v as name and got %v", expFopName, fops[0].Name)
+	}
+
+	if fops[0].Hits != expFopHits {
+		t.Errorf("expected %v as name and got %v", expFopHits, fops[0].Hits)
+	}
+
+	if fops[0].AvgLatency!= expAvgLatency {
+		t.Errorf("expected %v as name and got %v", expAvgLatency, fops[0].AvgLatency)
+	}
+
+	if fops[0].MinLatency != expMinLatency {
+		t.Errorf("expected %v as name and got %v", expMinLatency, fops[0].MinLatency)
+	}
+
+	if fops[0].MaxLatency != expMaxLatency {
+		t.Errorf("expected %v as name and got %v", expMaxLatency, fops[0].MaxLatency)
+	}
+}
