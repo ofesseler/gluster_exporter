@@ -79,10 +79,17 @@ with `gluster volume info` this is obsolete
 | volProfile.cumulativeStatus.totalRead              | Count    | implemented     |
 | volProfile.cumulativeStatus.totalWrite             | Count    | implemented     |
 | volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending | 
-| volProfile.cumulativeStats.fopStats.fop.hits       | count    | pending     |
-| volProfile.cumulativeStats.fopStats.fop.avgLatency | Gauge    | pending     |
-| volProfile.cumulativeStats.fopStats.fop.minLatency | Gauge    | pending     |
-| volProfile.cumulativeStats.fopStats.fop.maxLatency | Gauge    | pending     |
+| volProfile.cumulativeStats.fopStats.fop.hits       | count    | implemented     |
+| volProfile.cumulativeStats.fopStats.fop.avgLatency | Gauge    | implemented     |
+| volProfile.cumulativeStats.fopStats.fop.minLatency | Gauge    | implemented     |
+| volProfile.cumulativeStats.fopStats.fop.maxLatency | Gauge    | implemented     |
+
+
+### Command `gluster volume status all detail`
+| Name | type | Labels | impl. state |
+|------|------|--------|-------------|
+| volStatus.volumes.volume[].node[].sizeFree  | Gauge | hostname, path, volume | implemented |
+| volStatus.volumes.volume[].node[].sizeTotal | Gauge | hostname, path, volume | implemented |
 
 ## Similar Projects
 glusterfs exporter for prometheus written in rust. 
