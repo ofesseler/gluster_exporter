@@ -123,6 +123,8 @@ func TestVolumeStatusAllDetailXMLUnmarshall(t *testing.T) {
 		if vol.Volume.Node[0].SizeTotal != 20507914240 {
 			t.Errorf("SizeFree doesn't match 20507914240: %v", vol.Volume.Node[0].SizeTotal)
 		}
+	}
+}
 
 func TestVolumeProfileGvInfoCumulativeXMLUnmarshall(t *testing.T) {
 	testXMLPath := "../test/gluster_volume_profile_gv_test_info_cumulative.xml"
