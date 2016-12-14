@@ -77,3 +77,16 @@ func ExecVolumeProfileGvInfoCumulative(volumeName string) (structs.VolProfile, e
 	}
 	return volumeProfile.VolProfile, nil
 }
+
+// ExecVolumeStatusAllDetail executes "gluster volume status all detail" at the local machine
+// returns VolumeStatusXML struct and error
+func ExecVolumeStatusAllDetail() (structs.VolumeStatusXML, error) {
+	args := []string{"volume", "status", "all", "detail"}
+	bytesBuffer := execGlusterCommand(args...)
+	volumeStatus, err := structs.VolumeStatusAllDetailXMLUnmarshall(bytesBuffer)
+	if err != nil {
+		log.Errorf("Something went wrong while unmarshalling xml: %v", err)
+		return volumeStatus, err
+	}
+	return volumeStatus, nil
+}

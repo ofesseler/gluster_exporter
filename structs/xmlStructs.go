@@ -177,3 +177,47 @@ func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff *bytes.Buffer) (Volum
 	xml.Unmarshal(b, &vol)
 	return vol, nil
 }
+
+type VolumeStatusXML struct {
+	XMLName   xml.Name `xml:"cliOutput"`
+	OpRet     int      `xml:"opRet"`
+	OpErrno   int      `xml:"opErrno"`
+	OpErrstr  string   `xml:"opErrstr"`
+	VolStatus struct {
+		Volumes []struct {
+			Volume struct {
+				VolName   string `xml:"volName"`
+				NodeCount int    `xml:"nodeCount"`
+				Node      []struct {
+					Hostname string `xml:"hostname"`
+					Path     string `xml:"path"`
+					PeerID   string `xml:"peerid"`
+					Status   int    `xml:"status"`
+					Port     int    `xml:"port"`
+					Ports    struct {
+						TCP  int    `xml:"tcp"`
+						RDMA string `xml:"rdma"`
+					} `xml:"ports"`
+					Pid        int    `xml:"pid"`
+					SizeTotal  uint64 `xml:"sizeTotal"`
+					SizeFree   uint64 `xml:"sizeFree"`
+					Device     string `xml:"device"`
+					BlockSize  int    `xml:"blockSize"`
+					MntOptions string `xml:"mntOptions"`
+					FsName     string `xml:"fsName"`
+				} `xml:"node"`
+			} `xml:"volume"`
+		} `xml:"volumes"`
+	} `xml:"volStatus"`
+}
+
+func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeStatusXML, error) {
+	var vol VolumeStatusXML
+	b, err := ioutil.ReadAll(cmdOutBuff)
+	if err != nil {
+		log.Error(err)
+		return vol, err
+	}
+	xml.Unmarshal(b, &vol)
+	return vol, nil
+}

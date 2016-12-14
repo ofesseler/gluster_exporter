@@ -87,3 +87,41 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 
 	t.Log("gluster peer status test was successful.")
 }
+
+func TestVolumeStatusAllDetailXMLUnmarshall(t *testing.T) {
+	testXMLPath := "../test/gluster_volume_status_all_detail.xml"
+	t.Log("Test xml unmarshal for 'gluster peer status' with file: ", testXMLPath)
+	dat, err := ioutil.ReadFile(testXMLPath)
+	if err != nil {
+		t.Errorf("error reading testxml in Path: %v", testXMLPath)
+	}
+	volumeStatus, err := VolumeStatusAllDetailXMLUnmarshall(bytes.NewBuffer(dat))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if volumeStatus.OpErrno != 0 {
+		t.Error(volumeStatus.OpErrstr)
+	}
+
+	for _, vol := range volumeStatus.VolStatus.Volumes {
+		if vol.Volume.NodeCount != 4 {
+			t.Errorf("nodecount mismatch %v instead of 4", vol.Volume.NodeCount)
+		}
+
+		for _, node := range vol.Volume.Node {
+			if node.BlockSize != 4096 {
+				t.Errorf("blockSize mismatch %v and 4096 expected", node.BlockSize)
+			}
+
+		}
+
+		if vol.Volume.Node[0].SizeFree != 19517558784 {
+			t.Errorf("SizeFree doesn't match 19517558784: %v", vol.Volume.Node[0].SizeFree)
+		}
+
+		if vol.Volume.Node[0].SizeTotal != 20507914240 {
+			t.Errorf("SizeFree doesn't match 20507914240: %v", vol.Volume.Node[0].SizeTotal)
+		}
+	}
+}

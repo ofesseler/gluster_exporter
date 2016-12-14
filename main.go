@@ -53,6 +53,18 @@ var (
 		[]string{"volume"}, nil,
 	)
 
+	nodeSizeFreeBytes = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "node_size_free_bytes"),
+		"Free bytes reported for each node on each instance. Labels are to distinguish origins",
+		[]string{"hostname", "path", "volume"}, nil,
+	)
+
+	nodeSizeTotalBytes = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "node_size_total_bytes"),
+		"Total bytes reported for each node on each instance. Labels are to distinguish origins",
+		[]string{"hostname", "path", "volume"}, nil,
+	)
+
 	brickCount = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "brick_count"),
 		"Number of bricks at last query.",
@@ -102,6 +114,8 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- brickDataRead
 	ch <- brickDataWritten
 	ch <- peersConnected
+	ch <- nodeSizeFreeBytes
+	ch <- nodeSizeTotalBytes
 }
 
 // Collect collects all the metrics
@@ -182,6 +196,25 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 				}
 			}
+		}
+	}
+
+	// executes gluster status all detail
+	volumeStatusAll, err := ExecVolumeStatusAllDetail()
+	if err != nil {
+		log.Errorf("couldn't parse xml of peer status: %v", err)
+	}
+	for _, vol := range volumeStatusAll.VolStatus.Volumes {
+		for _, node := range vol.Volume.Node {
+			if node.Status != 1 {
+			}
+			ch <- prometheus.MustNewConstMetric(
+				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.Volume.VolName,
+			)
+
+			ch <- prometheus.MustNewConstMetric(
+				nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.Volume.VolName,
+			)
 		}
 	}
 }
