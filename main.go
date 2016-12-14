@@ -89,6 +89,30 @@ var (
 		[]string{"volume", "brick"}, nil,
 	)
 
+	brickFopHits = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_fop_hits"),
+		"Total amount of file operation hits.",
+		[]string{"volume", "brick", "fop_name"}, nil,
+	)
+
+	brickFopLatencyAvg = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_fop_latency_avg"),
+		"Average fileoperations latency over total uptime",
+		[]string{"volume", "brick", "fop_name"}, nil,
+	)
+
+	brickFopLatencyMin = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_fop_latency_min"),
+		"Minimum fileoperations latency over total uptime",
+		[]string{"volume", "brick", "fop_name"}, nil,
+	)
+
+	brickFopLatencyMax = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "brick_fop_latency_max"),
+		"Maximum fileoperations latency over total uptime",
+		[]string{"volume", "brick", "fop_name"}, nil,
+	)
+
 	peersConnected = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "peers_connected"),
 		"Is peer connected to gluster cluster.",
@@ -116,6 +140,10 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- peersConnected
 	ch <- nodeSizeFreeBytes
 	ch <- nodeSizeTotalBytes
+	ch <- brickFopHits
+	ch <- brickFopLatencyAvg
+	ch <- brickFopLatencyMin
+	ch <- brickFopLatencyMax
 }
 
 // Collect collects all the metrics
@@ -192,6 +220,23 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 						ch <- prometheus.MustNewConstMetric(
 							brickDataWritten, prometheus.CounterValue, float64(brick.CumulativeStats.TotalWrite), volume.Name, brick.BrickName,
 						)
+						for _, fop := range brick.CumulativeStats.FopStats.Fop {
+							ch <- prometheus.MustNewConstMetric(
+								brickFopHits, prometheus.CounterValue, float64(fop.Hits), volume.Name, brick.BrickName, fop.Name,
+							)
+
+							ch <- prometheus.MustNewConstMetric(
+								brickFopLatencyAvg, prometheus.CounterValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
+							)
+
+							ch <- prometheus.MustNewConstMetric(
+								brickFopLatencyMin, prometheus.CounterValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
+							)
+
+							ch <- prometheus.MustNewConstMetric(
+								brickFopLatencyMax, prometheus.CounterValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
+							)
+						}
 					}
 
 				}

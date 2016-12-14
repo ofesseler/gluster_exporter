@@ -120,7 +120,7 @@ type BrickProfile struct {
 
 // CumulativeStats element of "gluster volume {volume} profile" command
 type CumulativeStats struct {
-	//FopStats FopStats `xml:"fopStats"`
+	FopStats FopStats `xml:"fopStats"`
 	Duration   int `xml:"duration"`
 	TotalRead  int `xml:"totalRead"`
 	TotalWrite int `xml:"totalWrite"`
@@ -128,6 +128,16 @@ type CumulativeStats struct {
 
 // FopStats element of "gluster volume {volume} profile" command
 type FopStats struct {
+	Fop []Fop `xml:"fop"`
+}
+
+
+type Fop struct {
+	Name string `xml:"name"`
+	Hits int `xml:"hits"`
+	AvgLatency float64 `xml:"avgLatency"`
+	MinLatency float64 `xml:"minLatency"`
+	MaxLatency float64 `xml:"maxLatency"`
 }
 
 // VolumeListXMLUnmarshall unmarshalls bytes to VolumeListXML struct

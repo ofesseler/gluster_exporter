@@ -21,12 +21,16 @@ RUN apt-get clean
 
 
 # Create gluster volume, start gluster service and gluster_exporter
+RUN mkdir -p /data
+RUN mkdir -p /mnt/data
 RUN mkdir -p /mnt/gv_test
+
 COPY gluster-init.sh /usr/bin/gluster-init.sh
 RUN chmod a+x /usr/bin/gluster-init.sh
 
 # Copy gluster_exporter
 COPY gluster_exporter /usr/bin/gluster_exporter
 
-RUN /usr/bin/gluster-init.sh &
+#RUN /usr/bin/gluster-init.sh
 ENTRYPOINT /usr/bin/gluster-init.sh
+#ENTRYPOINT /bin/bash
