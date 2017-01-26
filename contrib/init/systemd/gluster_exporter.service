@@ -1,0 +1,10 @@
+[Unit]
+Description=gluster_exporter - Gluster Exporter for Prometheus
+Documentation=https://github.com/ofesseler/gluster_exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/gluster_exporter -profile=true
+Restart=on-failure
+RestartSec=10s
