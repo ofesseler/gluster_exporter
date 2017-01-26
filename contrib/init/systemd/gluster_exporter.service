@@ -7,7 +7,6 @@ After=network.target
 Type=simple
 ExecStart=/usr/local/bin/gluster_exporter -profile=true
 Restart=always
-RestartSec=10s
 
 [Install]
 WantedBy=multi-user.target
