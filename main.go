@@ -124,6 +124,16 @@ var (
 		prometheus.BuildFQName(namespace, "", "heal_info_files_count"),
 		"File count of files out of sync, when calling 'gluster v heal VOLNAME info",
 		[]string{"volume"}, nil)
+
+	volumeWriteable = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_writeable"),
+		"Writes and deletes file in Volume and checks if it si writeable",
+		[]string{"volume", "mountpoint"}, nil)
+
+	mountSuccessful = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "mount_successful"),
+		"Checks if mountpoint exists, returns a bool value 0 or 1",
+		[]string{"volume", "mountpoint"}, nil)
 )
 
 // Exporter holds name, path and volumes to be monitored
@@ -151,6 +161,8 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- brickFopLatencyMin
 	ch <- brickFopLatencyMax
 	ch <- healInfoFilesCount
+	ch <- volumeWriteable
+	ch <- mountSuccessful
 }
 
 // Collect collects all the metrics
@@ -290,6 +302,60 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			log.Infof("healInfoFilesCount is %v for volume %v", filesCount, vol)
 		}
 	}
+
+	for _, vol := range vols {
+		mountBuffer, execMountCheckErr := execMountCheck()
+		if execMountCheckErr != nil {
+			log.Error(execMountCheckErr)
+		}
+		mounts, err := parseMountOutput(vol, mountBuffer.String())
+		if err != nil {
+			log.Error(err)
+			if mounts != nil && len(mounts) > 0 {
+				for _, mount := range mounts {
+					ch <- prometheus.MustNewConstMetric(
+						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+					)
+				}
+			}
+		}
+		for _, mount := range mounts {
+			ch <- prometheus.MustNewConstMetric(
+				mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
+			)
+
+			isWriteable, err := execTouchOnVolumes(mount.mountPoint)
+			if err != nil {
+				log.Error(err)
+			}
+			if isWriteable {
+				ch <- prometheus.MustNewConstMetric(
+					volumeWriteable, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
+				)
+			} else {
+				ch <- prometheus.MustNewConstMetric(
+					volumeWriteable, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+				)
+			}
+		}
+	}
+}
+
+type mount struct {
+	mountPoint string
+	volume     string
+}
+
+// ParseMountOutput pares output of system execution 'mount'
+func parseMountOutput(vol string, mountBuffer string) ([]mount, error) {
+	var mounts []mount
+	mountRows := strings.Split(mountBuffer, "\n")
+	for _, row := range mountRows {
+		trimmedRow := strings.TrimSpace(row)
+		mountColumns := strings.Split(trimmedRow, " ")
+		mounts = append(mounts, mount{mountPoint: mountColumns[2], volume: mountColumns[0]})
+	}
+	return mounts, nil
 }
 
 // ContainsVolume checks a slice if it cpntains a element

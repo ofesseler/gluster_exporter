@@ -2,8 +2,11 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/ofesseler/gluster_exporter/structs"
 	"github.com/prometheus/common/log"
@@ -21,6 +24,32 @@ func execGlusterCommand(arg ...string) (*bytes.Buffer, error) {
 		return stdoutBuffer, err
 	}
 	return stdoutBuffer, nil
+}
+
+func execMountCheck() (*bytes.Buffer, error) {
+	stdoutBuffer := &bytes.Buffer{}
+	mountCmd := exec.Command("mount", "-t", "fuse.glusterfs")
+
+	mountCmd.Stdout = stdoutBuffer
+	err := mountCmd.Run()
+
+	if err != nil {
+		return stdoutBuffer, err
+	}
+	return stdoutBuffer, nil
+}
+
+func execTouchOnVolumes(mountpoint string) (bool, error) {
+	testFileName := "gluster_mount.test"
+	_, createErr := os.Create(fmt.Sprintf("%v/%v_%v", mountpoint, testFileName, time.Now()))
+	if createErr != nil {
+		return false, createErr
+	}
+	removeErr := os.Remove(testFileName)
+	if removeErr != nil {
+		return false, removeErr
+	}
+	return true, nil
 }
 
 // ExecVolumeInfo executes "gluster volume info" at the local machine and
