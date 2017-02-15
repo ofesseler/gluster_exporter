@@ -127,7 +127,7 @@ var (
 
 	volumeWriteable = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volume_writeable"),
-		"Writes and deletes file in Volume and checks if it si writeable",
+		"Writes and deletes file in Volume and checks if it is writeable",
 		[]string{"volume", "mountpoint"}, nil)
 
 	mountSuccessful = prometheus.NewDesc(
