@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <healInfo>
+    <bricks>
+      <brick hostUuid="a049c424-bd82-4436-abd4-ef3fc37c76ba">
+        <name>node1.example.com:/mnt/gluster/gv_test</name>
+        <file gfid="5ff0a22c-f8f1-4dc1-86a2-7db417fc75da">&lt;gfid:5ff0a22c-f8f1-4dc1-86a2-7db417fc75da&gt;</file>
+        <file gfid="e5c164c8-a121-4286-b339-879fb743e105">&lt;gfid:e5c164c8-a121-4286-b339-879fb743e105&gt;</file>
+        <file gfid="00000000-0000-0000-0000-000000000001">/</file>
+        <file gfid="bc3071f1-807a-49bf-90eb-997e6bd558fe">&lt;gfid:bc3071f1-807a-49bf-90eb-997e6bd558fe&gt;</file>
+        <file gfid="2d5db4f0-3ec1-43d9-8a7d-98da2eecac02">&lt;gfid:2d5db4f0-3ec1-43d9-8a7d-98da2eecac02&gt;</file>
+        <status>Connected</status>
+        <numberOfEntries>5</numberOfEntries>
+      </brick>
+      <brick hostUuid="-">
+        <name>node2.example.com:/mnt/gluster/gv_test</name>
+        <status>Transport endpoint is not connected</status>
+        <numberOfEntries>-</numberOfEntries>
+      </brick>
+      <brick hostUuid="-">
+        <name>node3.example.com:/mnt/gluster/gv_test</name>
+        <status>Transport endpoint is not connected</status>
+        <numberOfEntries>-</numberOfEntries>
+      </brick>
+      <brick hostUuid="-">
+        <name>node4.example.com:/mnt/gluster/gv_test</name>
+        <status>Transport endpoint is not connected</status>
+        <numberOfEntries>-</numberOfEntries>
+      </brick>
+    </bricks>
+  </healInfo>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+</cliOutput>

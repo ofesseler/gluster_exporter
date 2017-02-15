@@ -3,8 +3,9 @@ package structs
 import (
 	"bytes"
 	"encoding/xml"
-	"github.com/prometheus/common/log"
 	"io/ioutil"
+
+	"github.com/prometheus/common/log"
 )
 
 // VolumeInfoXML struct repesents cliOutput element of "gluster volume info" command
@@ -120,10 +121,10 @@ type BrickProfile struct {
 
 // CumulativeStats element of "gluster volume {volume} profile" command
 type CumulativeStats struct {
-	FopStats FopStats `xml:"fopStats"`
-	Duration   int `xml:"duration"`
-	TotalRead  int `xml:"totalRead"`
-	TotalWrite int `xml:"totalWrite"`
+	FopStats   FopStats `xml:"fopStats"`
+	Duration   int      `xml:"duration"`
+	TotalRead  int      `xml:"totalRead"`
+	TotalWrite int      `xml:"totalWrite"`
 }
 
 // FopStats element of "gluster volume {volume} profile" command
@@ -131,13 +132,54 @@ type FopStats struct {
 	Fop []Fop `xml:"fop"`
 }
 
-
+// Fop is struct for FopStats
 type Fop struct {
-	Name string `xml:"name"`
-	Hits int `xml:"hits"`
+	Name       string  `xml:"name"`
+	Hits       int     `xml:"hits"`
 	AvgLatency float64 `xml:"avgLatency"`
 	MinLatency float64 `xml:"minLatency"`
 	MaxLatency float64 `xml:"maxLatency"`
+}
+
+type HealInfoBrick struct {
+	XMLName         xml.Name `xml:"brick"`
+	Name            string   `xml:"name"`
+	Status          string   `xml:"status"`
+	NumberOfEntries string   `xml:"numberOfEntries"`
+}
+
+type HealInfoBricks struct {
+	XMLName xml.Name        `xml:"bricks"`
+	Brick   []HealInfoBrick `xml:"brick"`
+}
+
+type HealInfo struct {
+	XMLName xml.Name       `xml:"healInfo"`
+	Bricks  HealInfoBricks `xml:"bricks"`
+}
+
+// VolumeHealInfoXML struct repesents cliOutput element of "gluster volume {volume} heal info" command
+type VolumeHealInfoXML struct {
+	XMLName  xml.Name `xml:"cliOutput"`
+	OpRet    int      `xml:"opRet"`
+	OpErrno  int      `xml:"opErrno"`
+	OpErrstr string   `xml:"opErrstr"`
+	HealInfo HealInfo `xml:"healInfo"`
+}
+
+// VolumeHealInfoXMLUnmarshall unmarshalls heal info of gluster cluster
+func VolumeHealInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeHealInfoXML, error) {
+	var vol VolumeHealInfoXML
+	b, err := ioutil.ReadAll(cmdOutBuff)
+	if err != nil {
+		log.Error(err)
+		return vol, err
+	}
+	err = xml.Unmarshal(b, &vol)
+	if err != nil {
+		log.Error(err)
+	}
+	return vol, nil
 }
 
 // VolumeListXMLUnmarshall unmarshalls bytes to VolumeListXML struct
@@ -188,6 +230,7 @@ func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff *bytes.Buffer) (Volum
 	return vol, nil
 }
 
+// VolumeStatusXML XML type of "gluster volume status"
 type VolumeStatusXML struct {
 	XMLName   xml.Name `xml:"cliOutput"`
 	OpRet     int      `xml:"opRet"`
@@ -221,6 +264,7 @@ type VolumeStatusXML struct {
 	} `xml:"volStatus"`
 }
 
+// VolumeStatusAllDetailXMLUnmarshall reads bytes.buffer and returns unmarshalled xml
 func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeStatusXML, error) {
 	var vol VolumeStatusXML
 	b, err := ioutil.ReadAll(cmdOutBuff)

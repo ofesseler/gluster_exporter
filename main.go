@@ -32,6 +32,7 @@ const (
 	// GlusterCmd is the default path to gluster binary
 	GlusterCmd = "/usr/sbin/gluster"
 	namespace  = "gluster"
+	allVolumes = "_all"
 )
 
 var (
@@ -118,6 +119,11 @@ var (
 		"Is peer connected to gluster cluster.",
 		nil, nil,
 	)
+
+	healInfoFilesCount = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "heal_info_files_count"),
+		"File count of files out of sync, when calling 'gluster v heal VOLNAME info",
+		[]string{"volume"}, nil)
 )
 
 // Exporter holds name, path and volumes to be monitored
@@ -144,6 +150,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- brickFopLatencyAvg
 	ch <- brickFopLatencyMin
 	ch <- brickFopLatencyMax
+	ch <- healInfoFilesCount
 }
 
 // Collect collects all the metrics
@@ -174,7 +181,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	)
 
 	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-		if e.volumes[0] == "_all" || ContainsVolume(e.volumes, volume.Name) {
+		if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
 
 			ch <- prometheus.MustNewConstMetric(
 				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), volume.Name,
@@ -187,9 +194,9 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	// reads gluster peer status
-	peerStatus, err := ExecPeerStatus()
-	if err != nil {
-		log.Errorf("couldn't parse xml of peer status: %v", err)
+	peerStatus, peerStatusErr := ExecPeerStatus()
+	if peerStatusErr != nil {
+		log.Errorf("couldn't parse xml of peer status: %v", peerStatusErr)
 	}
 	count := 0
 	for range peerStatus.Peer {
@@ -202,10 +209,10 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// reads profile info
 	if e.profile {
 		for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-			if e.volumes[0] == "_all" || ContainsVolume(e.volumes, volume.Name) {
-				volumeProfile, err := ExecVolumeProfileGvInfoCumulative(volume.Name)
-				if err != nil {
-					log.Errorf("Error while executing or marshalling gluster profile output: %v", err)
+			if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
+				volumeProfile, execVolProfileErr := ExecVolumeProfileGvInfoCumulative(volume.Name)
+				if execVolProfileErr != nil {
+					log.Errorf("Error while executing or marshalling gluster profile output: %v", execVolProfileErr)
 				}
 				for _, brick := range volumeProfile.Brick {
 					if strings.HasPrefix(brick.BrickName, e.hostname) {
@@ -262,6 +269,27 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			)
 		}
 	}
+	vols := e.volumes
+	if vols[0] == allVolumes {
+		log.Warn("no Volumes were given.")
+		volumeList, volumeListErr := ExecVolumeList()
+		if volumeListErr != nil {
+			log.Error(volumeListErr)
+		}
+		vols = volumeList.Volume
+	}
+
+	for _, vol := range vols {
+		log.Infof("Fetching heal info from volume %v", vol)
+		filesCount, volumeHealErr := ExecVolumeHealInfo(vol)
+		if volumeHealErr == nil {
+			log.Infof("got info: %v", filesCount)
+			ch <- prometheus.MustNewConstMetric(
+				healInfoFilesCount, prometheus.CounterValue, float64(filesCount), vol,
+			)
+			log.Infof("healInfoFilesCount is %v for volume %v", filesCount, vol)
+		}
+	}
 }
 
 // ContainsVolume checks a slice if it cpntains a element
@@ -309,7 +337,7 @@ func main() {
 		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
 		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		showVersion    = flag.Bool("version", false, "Prints version information")
-		glusterVolumes = flag.String("volumes", "_all", "Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics")
+		glusterVolumes = flag.String("volumes", allVolumes, fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes))
 		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
 	)
 	flag.Parse()
@@ -320,7 +348,7 @@ func main() {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("While trying to get Hostname error happened: %v", err)
 	}
 	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile)
 	if err != nil {
