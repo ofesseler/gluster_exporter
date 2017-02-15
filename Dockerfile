@@ -5,6 +5,7 @@ EXPOSE 9189
 EXPOSE 24007
 EXPOSE 24008
 
+RUN apt-get update && apt-get install -y apt-transport-https ca-certificates
 # Gluster debian Repo
 ADD http://download.gluster.org/pub/gluster/glusterfs/3.8/LATEST/rsa.pub /tmp
 RUN apt-key add /tmp/rsa.pub && rm -f /tmp/rsa.pub
