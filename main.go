@@ -292,14 +292,11 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	for _, vol := range vols {
-		log.Infof("Fetching heal info from volume %v", vol)
 		filesCount, volumeHealErr := ExecVolumeHealInfo(vol)
 		if volumeHealErr == nil {
-			log.Infof("got info: %v", filesCount)
 			ch <- prometheus.MustNewConstMetric(
 				healInfoFilesCount, prometheus.CounterValue, float64(filesCount), vol,
 			)
-			log.Infof("healInfoFilesCount is %v for volume %v", filesCount, vol)
 		}
 	}
 
@@ -307,35 +304,36 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		mountBuffer, execMountCheckErr := execMountCheck()
 		if execMountCheckErr != nil {
 			log.Error(execMountCheckErr)
-		}
-		mounts, err := parseMountOutput(vol, mountBuffer.String())
-		if err != nil {
-			log.Error(err)
-			if mounts != nil && len(mounts) > 0 {
-				for _, mount := range mounts {
-					ch <- prometheus.MustNewConstMetric(
-						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
-					)
-				}
-			}
-		}
-		for _, mount := range mounts {
-			ch <- prometheus.MustNewConstMetric(
-				mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
-			)
-
-			isWriteable, err := execTouchOnVolumes(mount.mountPoint)
+		} else {
+			mounts, err := parseMountOutput(vol, mountBuffer.String())
 			if err != nil {
 				log.Error(err)
+				if mounts != nil && len(mounts) > 0 {
+					for _, mount := range mounts {
+						ch <- prometheus.MustNewConstMetric(
+							mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+						)
+					}
+				}
 			}
-			if isWriteable {
+			for _, mount := range mounts {
 				ch <- prometheus.MustNewConstMetric(
-					volumeWriteable, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
+					mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
 				)
-			} else {
-				ch <- prometheus.MustNewConstMetric(
-					volumeWriteable, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
-				)
+
+				isWriteable, err := execTouchOnVolumes(mount.mountPoint)
+				if err != nil {
+					log.Error(err)
+				}
+				if isWriteable {
+					ch <- prometheus.MustNewConstMetric(
+						volumeWriteable, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
+					)
+				} else {
+					ch <- prometheus.MustNewConstMetric(
+						volumeWriteable, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+					)
+				}
 			}
 		}
 	}
@@ -348,12 +346,14 @@ type mount struct {
 
 // ParseMountOutput pares output of system execution 'mount'
 func parseMountOutput(vol string, mountBuffer string) ([]mount, error) {
-	var mounts []mount
+	mounts := make([]mount, 0, 2)
 	mountRows := strings.Split(mountBuffer, "\n")
 	for _, row := range mountRows {
 		trimmedRow := strings.TrimSpace(row)
-		mountColumns := strings.Split(trimmedRow, " ")
-		mounts = append(mounts, mount{mountPoint: mountColumns[2], volume: mountColumns[0]})
+		if len(row) > 3 {
+			mountColumns := strings.Split(trimmedRow, " ")
+			mounts = append(mounts, mount{mountPoint: mountColumns[2], volume: mountColumns[0]})
+		}
 	}
 	return mounts, nil
 }

@@ -10,16 +10,35 @@ func TestContainsVolume(t *testing.T) {
 	}
 }
 
+type testCases struct {
+	mountOutput string
+	expected    []string
+}
+
 func TestParseMountOutput(t *testing.T) {
-	mountOutput := "/dev/mapper/cryptroot on / type ext4 (rw,relatime,data=ordered) \n /dev/mapper/cryptroot on /var/lib/docker/devicemapper type ext4 (rw,relatime,data=ordered)"
-	mounts, err := parseMountOutput("asd", mountOutput)
-	if err != nil {
-		t.Error(err)
+	var tests = []testCases{
+		{
+			mountOutput: "/dev/mapper/cryptroot on / type ext4 (rw,relatime,data=ordered) \n" +
+				"/dev/mapper/cryptroot on /var/lib/docker/devicemapper type ext4 (rw,relatime,data=ordered)",
+			expected: []string{"/", "/var/lib/docker/devicemapper"},
+		},
+		{
+			mountOutput: "/dev/mapper/cryptroot on / type ext4 (rw,relatime,data=ordered) \n" +
+				"",
+			expected: []string{"/"},
+		},
 	}
-	expected := []string{"/", "/var/lib/docker/devicemapper"}
-	for i, mount := range mounts {
-		if mount.mountPoint != expected[i] {
-			t.Errorf("mountpoint is %v and %v was expected", mount.mountPoint, expected[i])
+	for _, c := range tests {
+		mounts, err := parseMountOutput("asd", c.mountOutput)
+		if err != nil {
+			t.Error(err)
+		}
+
+		for i, mount := range mounts {
+			if mount.mountPoint != c.expected[i] {
+				t.Errorf("mountpoint is %v and %v was expected", mount.mountPoint, c.expected[i])
+			}
 		}
 	}
+
 }
