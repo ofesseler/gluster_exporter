@@ -300,22 +300,21 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		}
 	}
 
-	for _, vol := range vols {
-		mountBuffer, execMountCheckErr := execMountCheck()
-		if execMountCheckErr != nil {
-			log.Error(execMountCheckErr)
-		} else {
-			mounts, err := parseMountOutput(vol, mountBuffer.String())
-			if err != nil {
-				log.Error(err)
-				if mounts != nil && len(mounts) > 0 {
-					for _, mount := range mounts {
-						ch <- prometheus.MustNewConstMetric(
-							mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
-						)
-					}
+	mountBuffer, execMountCheckErr := execMountCheck()
+	if execMountCheckErr != nil {
+		log.Error(execMountCheckErr)
+	} else {
+		mounts, err := parseMountOutput(mountBuffer.String())
+		if err != nil {
+			log.Error(err)
+			if mounts != nil && len(mounts) > 0 {
+				for _, mount := range mounts {
+					ch <- prometheus.MustNewConstMetric(
+						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+					)
 				}
 			}
+		} else {
 			for _, mount := range mounts {
 				ch <- prometheus.MustNewConstMetric(
 					mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
@@ -345,7 +344,7 @@ type mount struct {
 }
 
 // ParseMountOutput pares output of system execution 'mount'
-func parseMountOutput(vol string, mountBuffer string) ([]mount, error) {
+func parseMountOutput(mountBuffer string) ([]mount, error) {
 	mounts := make([]mount, 0, 2)
 	mountRows := strings.Split(mountBuffer, "\n")
 	for _, row := range mountRows {

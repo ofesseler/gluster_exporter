@@ -29,7 +29,7 @@ func TestParseMountOutput(t *testing.T) {
 		},
 	}
 	for _, c := range tests {
-		mounts, err := parseMountOutput("asd", c.mountOutput)
+		mounts, err := parseMountOutput(c.mountOutput)
 		if err != nil {
 			t.Error(err)
 		}
