@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cliOutput>
+  <healInfo>
+    <bricks>
+      <brick hostUuid="a049c424-ffff-4436-abd4-ef3fcfffffa">
+        <name>node1.example.com:/mnt/gluster/gv_test</name>
+        <status>Connected</status>
+        <numberOfEntries>0</numberOfEntries>
+      </brick>
+      <brick hostUuid="f6fa44e7-ffff-4f6e-8404-6d2cefffff1">
+        <name>node2.example.com:/mnt/gluster/gv_test</name>
+        <status>Connected</status>
+        <numberOfEntries>0</numberOfEntries>
+      </brick>
+      <brick hostUuid="073c4354-ffff-4474-95b3-c2bc2fffffd">
+        <name>node3.example.com:/mnt/gluster/gv_test</name>
+        <status>Connected</status>
+        <numberOfEntries>0</numberOfEntries>
+      </brick>
+    </bricks>
+  </healInfo>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+</cliOutput>

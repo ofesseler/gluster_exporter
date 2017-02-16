@@ -3,6 +3,8 @@ package structs
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
+	"strconv"
 	"testing"
 )
 
@@ -167,7 +169,7 @@ func TestVolumeProfileGvInfoCumulativeXMLUnmarshall(t *testing.T) {
 		t.Errorf("expected %v as name and got %v", expFopHits, fops[0].Hits)
 	}
 
-	if fops[0].AvgLatency!= expAvgLatency {
+	if fops[0].AvgLatency != expAvgLatency {
 		t.Errorf("expected %v as name and got %v", expAvgLatency, fops[0].AvgLatency)
 	}
 
@@ -178,4 +180,49 @@ func TestVolumeProfileGvInfoCumulativeXMLUnmarshall(t *testing.T) {
 	if fops[0].MaxLatency != expMaxLatency {
 		t.Errorf("expected %v as name and got %v", expMaxLatency, fops[0].MaxLatency)
 	}
+}
+
+func getCliBufferHelper(filename string) *bytes.Buffer {
+	dat, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal("Could not read test data from xml.", err)
+	}
+	return bytes.NewBuffer(dat)
+}
+
+type testPair struct {
+	path      string
+	expected  int
+	nodeCount int
+}
+
+func TestVolumeHealInfoXMLUnmarshall(t *testing.T) {
+	var test = []testPair{
+		{path: "../test/gluster_volume_heal_info_err_node2.xml", expected: 3, nodeCount: 4},
+	}
+
+	for _, c := range test {
+		cmdOutBuffer := getCliBufferHelper(c.path)
+		healInfo, err := VolumeHealInfoXMLUnmarshall(cmdOutBuffer)
+		if err != nil {
+			t.Error(err)
+		}
+		if healInfo.OpErrno != 0 {
+			t.Error(healInfo.OpErrstr)
+		}
+		entriesOutOfSync := 0
+		if len(healInfo.HealInfo.Bricks.Brick) != c.nodeCount {
+			t.Error(healInfo.HealInfo.Bricks)
+			t.Errorf("Excpected %v Bricks and len is %v", c.nodeCount, len(healInfo.HealInfo.Bricks.Brick))
+		}
+		for _, brick := range healInfo.HealInfo.Bricks.Brick {
+			var count int
+			count, _ = strconv.Atoi(brick.NumberOfEntries)
+			entriesOutOfSync += count
+		}
+		if entriesOutOfSync != c.expected {
+			t.Errorf("Out of sync entries other than expected: %v and was %v", c.expected, entriesOutOfSync)
+		}
+	}
+
 }

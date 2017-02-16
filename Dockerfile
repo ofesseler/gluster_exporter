@@ -5,12 +5,13 @@ EXPOSE 9189
 EXPOSE 24007
 EXPOSE 24008
 
+RUN apt-get update && apt-get install -y apt-transport-https ca-certificates
 # Gluster debian Repo
-ADD http://download.gluster.org/pub/gluster/glusterfs/3.8/3.8.5/rsa.pub /tmp
+ADD http://download.gluster.org/pub/gluster/glusterfs/3.8/LATEST/rsa.pub /tmp
 RUN apt-key add /tmp/rsa.pub && rm -f /tmp/rsa.pub
 
 # Add gluster debian repo and update apt
-RUN echo deb http://download.gluster.org/pub/gluster/glusterfs/3.8/3.8.5/Debian/jessie/apt jessie main > /etc/apt/sources.list.d/gluster.list
+RUN echo deb http://download.gluster.org/pub/gluster/glusterfs/3.8/LATEST/Debian/jessie/apt jessie main > /etc/apt/sources.list.d/gluster.list
 RUN apt-get update
 
 # Install Gluster server
