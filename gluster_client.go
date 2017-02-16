@@ -40,8 +40,8 @@ func execMountCheck() (*bytes.Buffer, error) {
 }
 
 func execTouchOnVolumes(mountpoint string) (bool, error) {
-	testFileName := "gluster_mount.test"
-	_, createErr := os.Create(fmt.Sprintf("%v/%v_%v", mountpoint, testFileName, time.Now()))
+	testFileName := fmt.Sprintf("%v/%v_%v", mountpoint, "gluster_mount.test", time.Now())
+	_, createErr := os.Create(testFileName)
 	if createErr != nil {
 		return false, createErr
 	}
