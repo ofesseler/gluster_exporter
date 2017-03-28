@@ -78,7 +78,7 @@ with `gluster volume info` this is obsolete
 | volProfile.cumulativeStatus.duration               | Count    | implemented     |
 | volProfile.cumulativeStatus.totalRead              | Count    | implemented     |
 | volProfile.cumulativeStatus.totalWrite             | Count    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending | 
+| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending |
 | volProfile.cumulativeStats.fopStats.fop.hits       | count    | implemented     |
 | volProfile.cumulativeStats.fopStats.fop.avgLatency | Gauge    | implemented     |
 | volProfile.cumulativeStats.fopStats.fop.minLatency | Gauge    | implemented     |
@@ -114,11 +114,31 @@ with `gluster volume info` this is obsolete
 | mount_successful 		| Checks if mountpoint exists, returns a bool value 0 or 1    |
 
 ## Troubleshooting
+
+### No data / Error Message: 'Another transaction is in progress... '
+
 If the following message appears while trying to get some information out of your gluster. Increase scrape interval in `prometheus.yml` to at least 30s.
 
 ```
-Another transaction is in progress for gv_cluster. Please try again after sometime
+Another transaction is in progress for gv_cluster. Please try again after some time
 ```
+
+### Missing metrics
+
+If there are missing metrics than there are some options:
+
+1. Profiling isn't enabled: enable them with `-profile true` for gluster_exporter and second enable profiling for a volume in gluster it self
+```
+gluster volume profile <volume-name> start
+```
+Verify it with
+```
+gluster volume profile gv_test info
+```
+
+2. The gluster_exporter isn't able to fetch these metrics and therefore they won't appear.
+3. Gluster doesn't work / respond to CMD queries, verify this with `gluster volume status all`
+
 
 ## Similar Projects
 glusterfs exporter for prometheus written in rust.
