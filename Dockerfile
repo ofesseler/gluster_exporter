@@ -26,6 +26,9 @@ RUN mkdir -p /data
 RUN mkdir -p /mnt/data
 RUN mkdir -p /mnt/gv_test
 
+RUN mkdir -p /data1
+RUN mkdir -p /mnt/data1
+
 COPY gluster-init.sh /usr/bin/gluster-init.sh
 RUN chmod a+x /usr/bin/gluster-init.sh
 

@@ -14,7 +14,7 @@ build: gotest
 
 docker: gotest build
 	docker build -t gluster-exporter-test .
-	docker run --rm --privileged=true -p 9189:9189 -p 24007:24007 -p 24008:24008 -i -v gluster-test:/data gluster-exporter-test
+	docker run --rm --privileged=true -p 9189:9189 -p 24007:24007 -p 24008:24008 -it -v gluster-test:/data gluster-exporter-test
 
 gotest: fmt
 	$(GO) test -v $(pkgs)

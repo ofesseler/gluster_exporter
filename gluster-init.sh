@@ -6,7 +6,12 @@ gluster volume create data $(hostname):/data force
 gluster volume start data
 gluster volume profile data start
 
+gluster volume create data1 $(hostname):/data1 force
+gluster volume start data1
+gluster volume profile data1 start
+
 glusterfs --volfile-server=localhost --volfile-id=data /mnt/data
+glusterfs --volfile-server=localhost --volfile-id=data1 /mnt/data1
 
 dd if=/dev/zero of=/mnt/data/test.zero bs=1M count=10
 dd if=/dev/urandom of=/mnt/data/test.random bs=1M count=10
@@ -15,6 +20,6 @@ dd if=/dev/urandom of=/mnt/data/test.random bs=1M count=10
 
 /usr/bin/gluster_exporter -profile true
 
-service glusterfs-server stop
+#service glusterfs-server stop
 
 exit 0
