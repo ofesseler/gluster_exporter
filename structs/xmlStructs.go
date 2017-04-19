@@ -263,6 +263,7 @@ type VolumeStatusXML struct {
 		} `xml:"volumes"`
 	} `xml:"volStatus"`
 }
+
 // VolumeStatusAllDetailXMLUnmarshall reads bytes.buffer and returns unmarshalled xml
 func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeStatusXML, error) {
 	var vol VolumeStatusXML
