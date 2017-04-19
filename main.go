@@ -172,6 +172,7 @@ type Exporter struct {
 	path     string
 	volumes  []string
 	profile  bool
+	quota    bool
 }
 
 // Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
@@ -371,69 +372,71 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 	}
-	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-		if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
-			volumeQuotaXML, err := ExecVolumeQuotaList(volume.Name)
-			if err != nil {
-				log.Error(err)
-			} else {
-				for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
-					ch <- prometheus.MustNewConstMetric(
-						quotaHardLimit,
-						prometheus.CounterValue,
-						float64(limit.HardLimit),
-						limit.Path,
-						volume.Name,
-					)
+	if e.quota {
+		for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
+			if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
+				volumeQuotaXML, err := ExecVolumeQuotaList(volume.Name)
+				if err != nil {
+					log.Error("Cannot create quota metrics if quotas are not enabled in your gluster server")
+				} else {
+					for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
+						ch <- prometheus.MustNewConstMetric(
+							quotaHardLimit,
+							prometheus.CounterValue,
+							float64(limit.HardLimit),
+							limit.Path,
+							volume.Name,
+						)
 
-					ch <- prometheus.MustNewConstMetric(
-						quotaSoftLimit,
-						prometheus.CounterValue,
-						float64(limit.SoftLimitValue),
-						limit.Path,
-						volume.Name,
-					)
-					ch <- prometheus.MustNewConstMetric(
-						quotaUsed,
-						prometheus.CounterValue,
-						float64(limit.UsedSpace),
-						limit.Path,
-						volume.Name,
-					)
+						ch <- prometheus.MustNewConstMetric(
+							quotaSoftLimit,
+							prometheus.CounterValue,
+							float64(limit.SoftLimitValue),
+							limit.Path,
+							volume.Name,
+						)
+						ch <- prometheus.MustNewConstMetric(
+							quotaUsed,
+							prometheus.CounterValue,
+							float64(limit.UsedSpace),
+							limit.Path,
+							volume.Name,
+						)
 
-					ch <- prometheus.MustNewConstMetric(
-						quotaAvailable,
-						prometheus.CounterValue,
-						float64(limit.AvailSpace),
-						limit.Path,
-						volume.Name,
-					)
+						ch <- prometheus.MustNewConstMetric(
+							quotaAvailable,
+							prometheus.CounterValue,
+							float64(limit.AvailSpace),
+							limit.Path,
+							volume.Name,
+						)
 
-					var slExceeded float64
-					slExceeded = 0.0
-					if limit.SlExceeded != "No" {
-						slExceeded = 1.0
+						var slExceeded float64
+						slExceeded = 0.0
+						if limit.SlExceeded != "No" {
+							slExceeded = 1.0
+						}
+						ch <- prometheus.MustNewConstMetric(
+							quotaSoftLimitExceeded,
+							prometheus.CounterValue,
+							slExceeded,
+							limit.Path,
+							volume.Name,
+						)
+
+						var hlExceeded float64
+						hlExceeded = 0.0
+						if limit.HlExceeded != "No" {
+							hlExceeded = 1.0
+						}
+						ch <- prometheus.MustNewConstMetric(
+							quotaHardLimitExceeded,
+							prometheus.CounterValue,
+							hlExceeded,
+							limit.Path,
+							volume.Name,
+						)
 					}
-					ch <- prometheus.MustNewConstMetric(
-						quotaSoftLimitExceeded,
-						prometheus.CounterValue,
-						slExceeded,
-						limit.Path,
-						volume.Name,
-					)
-
-					var hlExceeded float64
-					hlExceeded = 0.0
-					if limit.HlExceeded != "No" {
-						hlExceeded = 1.0
-					}
-					ch <- prometheus.MustNewConstMetric(
-						quotaHardLimitExceeded,
-						prometheus.CounterValue,
-						hlExceeded,
-						limit.Path,
-						volume.Name,
-					)
 				}
 			}
 		}
@@ -470,7 +473,7 @@ func ContainsVolume(slice []string, element string) bool {
 }
 
 // NewExporter initialises exporter
-func NewExporter(hostname, glusterExecPath, volumesString string, profile bool) (*Exporter, error) {
+func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
@@ -484,6 +487,7 @@ func NewExporter(hostname, glusterExecPath, volumesString string, profile bool) 
 		path:     glusterExecPath,
 		volumes:  volumes,
 		profile:  profile,
+		quota:    quota,
 	}, nil
 }
 
@@ -506,6 +510,7 @@ func main() {
 		showVersion    = flag.Bool("version", false, "Prints version information")
 		glusterVolumes = flag.String("volumes", allVolumes, fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes))
 		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
+		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota true' to get more metrics")
 	)
 	flag.Parse()
 
@@ -517,7 +522,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("While trying to get Hostname error happened: %v", err)
 	}
-	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile)
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota)
 	if err != nil {
 		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
 	}
