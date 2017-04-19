@@ -408,41 +408,32 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 						limit.Path,
 						volume.Name,
 					)
-					if limit.SlExceeded == "No" {
-						ch <- prometheus.MustNewConstMetric(
-							quotaSoftLimitExceeded,
-							prometheus.CounterValue,
-							float64(0),
-							limit.Path,
-							volume.Name,
-						)
-					} else {
-						ch <- prometheus.MustNewConstMetric(
-							quotaSoftLimitExceeded,
-							prometheus.CounterValue,
-							float64(1),
-							limit.Path,
-							volume.Name,
-						)
-					}
 
-					if limit.HlExceeded == "No" {
-						ch <- prometheus.MustNewConstMetric(
-							quotaHardLimitExceeded,
-							prometheus.CounterValue,
-							float64(0),
-							limit.Path,
-							volume.Name,
-						)
-					} else {
-						ch <- prometheus.MustNewConstMetric(
-							quotaHardLimitExceeded,
-							prometheus.CounterValue,
-							float64(1),
-							limit.Path,
-							volume.Name,
-						)
+					var slExceeded float64
+					slExceeded = 0.0
+					if limit.SlExceeded != "No" {
+						slExceeded = 1.0
 					}
+					ch <- prometheus.MustNewConstMetric(
+						quotaSoftLimitExceeded,
+						prometheus.CounterValue,
+						slExceeded,
+						limit.Path,
+						volume.Name,
+					)
+
+					var hlExceeded float64
+					hlExceeded = 0.0
+					if limit.HlExceeded != "No" {
+						hlExceeded = 1.0
+					}
+					ch <- prometheus.MustNewConstMetric(
+						quotaHardLimitExceeded,
+						prometheus.CounterValue,
+						hlExceeded,
+						limit.Path,
+						volume.Name,
+					)
 				}
 			}
 		}
