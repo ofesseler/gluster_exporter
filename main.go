@@ -137,22 +137,22 @@ var (
 
 	quotaHardLimit = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volume_quota_hardlimit"),
-		"Quota hard limit in a volume",
+		"Quota hard limit (bytes) in a volume",
 		[]string{"path", "volume"}, nil)
 
 	quotaSoftLimit = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volume_quota_softlimit"),
-		"Quota soft limit in a volume",
+		"Quota soft limit (bytes) in a volume",
 		[]string{"path", "volume"}, nil)
 
 	quotaUsed = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volume_quota_used"),
-		"Current data used in a quota",
+		"Current data (bytes) used in a quota",
 		[]string{"path", "volume"}, nil)
 
 	quotaAvailable = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "volume_quota_available"),
-		"Current data available in a quota",
+		"Current data (bytes) available in a quota",
 		[]string{"path", "volume"}, nil)
 
 	quotaSoftLimitExceeded = prometheus.NewDesc(
