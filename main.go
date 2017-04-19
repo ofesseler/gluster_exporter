@@ -134,6 +134,36 @@ var (
 		prometheus.BuildFQName(namespace, "", "mount_successful"),
 		"Checks if mountpoint exists, returns a bool value 0 or 1",
 		[]string{"volume", "mountpoint"}, nil)
+
+	quotaHardLimit = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_quota_hardlimit"),
+		"Quota hard limit in a volume",
+		[]string{"path", "volume"}, nil)
+
+	quotaSoftLimit = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_quota_softlimit"),
+		"Quota soft limit in a volume",
+		[]string{"path", "volume"}, nil)
+
+	quotaUsed = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_quota_used"),
+		"Current data used in a quota",
+		[]string{"path", "volume"}, nil)
+
+	quotaAvailable = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_quota_available"),
+		"Current data available in a quota",
+		[]string{"path", "volume"}, nil)
+
+	quotaSoftLimitExceeded = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_quota_softlimit_exceeded"),
+		"Is the quota soft-limit exceeded",
+		[]string{"path", "volume"}, nil)
+
+	quotaHardLimitExceeded = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "volume_quota_hardlimit_exceeded"),
+		"Is the quota hard-limit exceeded",
+		[]string{"path", "volume"}, nil)
 )
 
 // Exporter holds name, path and volumes to be monitored
@@ -163,6 +193,12 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- healInfoFilesCount
 	ch <- volumeWriteable
 	ch <- mountSuccessful
+	ch <- quotaHardLimit
+	ch <- quotaSoftLimit
+	ch <- quotaUsed
+	ch <- quotaAvailable
+	ch <- quotaSoftLimitExceeded
+	ch <- quotaHardLimitExceeded
 }
 
 // Collect collects all the metrics
@@ -257,7 +293,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							)
 						}
 					}
-
 				}
 			}
 		}
@@ -336,6 +371,82 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 	}
+	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
+		if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
+			volumeQuotaXML, err := ExecVolumeQuotaList(volume.Name)
+			if err != nil {
+				log.Error(err)
+			} else {
+				for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
+					ch <- prometheus.MustNewConstMetric(
+						quotaHardLimit,
+						prometheus.CounterValue,
+						float64(limit.HardLimit),
+						limit.Path,
+						volume.Name,
+					)
+
+					ch <- prometheus.MustNewConstMetric(
+						quotaSoftLimit,
+						prometheus.CounterValue,
+						float64(limit.SoftLimitValue),
+						limit.Path,
+						volume.Name,
+					)
+					ch <- prometheus.MustNewConstMetric(
+						quotaUsed,
+						prometheus.CounterValue,
+						float64(limit.UsedSpace),
+						limit.Path,
+						volume.Name,
+					)
+
+					ch <- prometheus.MustNewConstMetric(
+						quotaAvailable,
+						prometheus.CounterValue,
+						float64(limit.AvailSpace),
+						limit.Path,
+						volume.Name,
+					)
+					if limit.SlExceeded == "No" {
+						ch <- prometheus.MustNewConstMetric(
+							quotaSoftLimitExceeded,
+							prometheus.CounterValue,
+							float64(0),
+							limit.Path,
+							volume.Name,
+						)
+					} else {
+						ch <- prometheus.MustNewConstMetric(
+							quotaSoftLimitExceeded,
+							prometheus.CounterValue,
+							float64(1),
+							limit.Path,
+							volume.Name,
+						)
+					}
+
+					if limit.HlExceeded == "No" {
+						ch <- prometheus.MustNewConstMetric(
+							quotaHardLimitExceeded,
+							prometheus.CounterValue,
+							float64(0),
+							limit.Path,
+							volume.Name,
+						)
+					} else {
+						ch <- prometheus.MustNewConstMetric(
+							quotaHardLimitExceeded,
+							prometheus.CounterValue,
+							float64(1),
+							limit.Path,
+							volume.Name,
+						)
+					}
+				}
+			}
+		}
+	}
 }
 
 type mount struct {
@@ -357,7 +468,7 @@ func parseMountOutput(mountBuffer string) ([]mount, error) {
 	return mounts, nil
 }
 
-// ContainsVolume checks a slice if it cpntains a element
+// ContainsVolume checks a slice if it contains an element
 func ContainsVolume(slice []string, element string) bool {
 	for _, a := range slice {
 		if a == element {
