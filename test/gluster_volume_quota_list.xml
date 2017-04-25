@@ -1,0 +1,27 @@
+<cliOutput>
+  <opRet>0</opRet>
+  <opErrno>0</opErrno>
+  <opErrstr/>
+  <volQuota>
+    <limit>
+      <path>/foo</path>
+      <hard_limit>10737418240</hard_limit>
+      <soft_limit_percent>80%</soft_limit_percent>
+      <soft_limit_value>8589934592</soft_limit_value>
+      <used_space>428160000</used_space>
+      <avail_space>10309258240</avail_space>
+      <sl_exceeded>No</sl_exceeded>
+      <hl_exceeded>No</hl_exceeded>
+    </limit>
+    <limit>
+      <path>/bar</path>
+      <hard_limit>2147483648</hard_limit>
+      <soft_limit_percent>80%</soft_limit_percent>
+      <soft_limit_value>1717986918</soft_limit_value>
+      <used_space>335544320</used_space>
+      <avail_space>1811939328</avail_space>
+      <sl_exceeded>No</sl_exceeded>
+      <hl_exceeded>No</hl_exceeded>
+    </limit>
+  </volQuota>
+</cliOutput>

@@ -159,3 +159,20 @@ func ExecVolumeHealInfo(volumeName string) (int, error) {
 	}
 	return entriesOutOfSync, nil
 }
+
+// ExecVolumeQuotaList executes volume quota list on host system and processess input
+// returns QuotaList structs and errors
+
+func ExecVolumeQuotaList(volumeName string) (structs.VolumeQuotaXML, error) {
+	args := []string{"volume", "quota", volumeName, "list"}
+	bytesBuffer, cmdErr := execGlusterCommand(args...)
+	if cmdErr != nil {
+		return structs.VolumeQuotaXML{}, cmdErr
+	}
+	volumeQuota, err := structs.VolumeQuotaListXMLUnmarshall(bytesBuffer)
+	if err != nil {
+		log.Errorf("Something went wrong while unmarshalling xml: %v", err)
+		return volumeQuota, err
+	}
+	return volumeQuota, nil
+}
