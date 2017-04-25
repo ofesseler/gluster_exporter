@@ -304,16 +304,16 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	if err != nil {
 		log.Errorf("couldn't parse xml of peer status: %v", err)
 	}
-	for _, vol := range volumeStatusAll.VolStatus.Volumes {
-		for _, node := range vol.Volume.Node {
+	for _, vol := range volumeStatusAll.VolStatus.Volumes.Volume {
+		for _, node := range vol.Node {
 			if node.Status != 1 {
 			}
 			ch <- prometheus.MustNewConstMetric(
-				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.Volume.VolName,
+				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
 			)
 
 			ch <- prometheus.MustNewConstMetric(
-				nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.Volume.VolName,
+				nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
 			)
 		}
 	}

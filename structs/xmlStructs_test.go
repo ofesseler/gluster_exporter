@@ -92,7 +92,7 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 
 func TestVolumeStatusAllDetailXMLUnmarshall(t *testing.T) {
 	testXMLPath := "../test/gluster_volume_status_all_detail.xml"
-	t.Log("Test xml unmarshal for 'gluster peer status' with file: ", testXMLPath)
+	t.Log("Test xml unmarshal for 'gluster volume status all detail' with file: ", testXMLPath)
 	dat, err := ioutil.ReadFile(testXMLPath)
 	if err != nil {
 		t.Errorf("error reading testxml in Path: %v", testXMLPath)
@@ -106,25 +106,33 @@ func TestVolumeStatusAllDetailXMLUnmarshall(t *testing.T) {
 		t.Error(volumeStatus.OpErrstr)
 	}
 
-	for _, vol := range volumeStatus.VolStatus.Volumes {
-		if vol.Volume.NodeCount != 4 {
-			t.Errorf("nodecount mismatch %v instead of 4", vol.Volume.NodeCount)
+	for _, vol := range volumeStatus.VolStatus.Volumes.Volume {
+		if vol.NodeCount != 4 {
+			t.Errorf("nodecount mismatch %v instead of 4", vol.NodeCount)
 		}
 
-		for _, node := range vol.Volume.Node {
+		for _, node := range vol.Node {
 			if node.BlockSize != 4096 {
 				t.Errorf("blockSize mismatch %v and 4096 expected", node.BlockSize)
 			}
 
 		}
 
-		if vol.Volume.Node[0].SizeFree != 19517558784 {
-			t.Errorf("SizeFree doesn't match 19517558784: %v", vol.Volume.Node[0].SizeFree)
+		if vol.Node[0].SizeFree != 19517558784 {
+			t.Errorf("SizeFree doesn't match 19517558784: %v", vol.Node[0].SizeFree)
 		}
 
-		if vol.Volume.Node[0].SizeTotal != 20507914240 {
-			t.Errorf("SizeFree doesn't match 20507914240: %v", vol.Volume.Node[0].SizeTotal)
+		if vol.Node[0].SizeTotal != 20507914240 {
+			t.Errorf("SizeFree doesn't match 20507914240: %v", vol.Node[0].SizeTotal)
 		}
+	}
+
+	if volumeStatus.VolStatus.Volumes.Volume[0].VolName != "gv_test" {
+		t.Errorf("VolName of first volume doesn't match gv_test: %v", volumeStatus.VolStatus.Volumes.Volume[0].VolName)
+	}
+
+	if volumeStatus.VolStatus.Volumes.Volume[1].VolName != "gv_test2" {
+		t.Errorf("VolName of first volume doesn't match gv_test2: %v", volumeStatus.VolStatus.Volumes.Volume[1].VolName)
 	}
 }
 
@@ -245,13 +253,13 @@ func TestVolumeQuotaListXMLUnmarshall(t *testing.T) {
 	}
     nb_limits := len(volumeQuotaXML.VolQuota.QuotaLimits)
     if nb_limits != nodeCount {
-        t.Error("Expected %v Limits and len is %v", nodeCount, nb_limits)
+        t.Errorf("Expected %v Limits and len is %v", nodeCount, nb_limits)
     }
 
     for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
         if limit.Path == "/foo" {
             if limit.AvailSpace != 10309258240 {
-                t.Error(
+                t.Errorf(
                     "Expected %v for available space in path %v, got %v",
                     1811939328,
                     limit.Path,

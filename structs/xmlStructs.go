@@ -237,8 +237,8 @@ type VolumeStatusXML struct {
 	OpErrno   int      `xml:"opErrno"`
 	OpErrstr  string   `xml:"opErrstr"`
 	VolStatus struct {
-		Volumes []struct {
-			Volume struct {
+		Volumes struct {
+			Volume []struct {
 				VolName   string `xml:"volName"`
 				NodeCount int    `xml:"nodeCount"`
 				Node      []struct {
