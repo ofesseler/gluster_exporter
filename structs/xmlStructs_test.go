@@ -253,13 +253,13 @@ func TestVolumeQuotaListXMLUnmarshall(t *testing.T) {
 	}
     nb_limits := len(volumeQuotaXML.VolQuota.QuotaLimits)
     if nb_limits != nodeCount {
-        t.Error("Expected %v Limits and len is %v", nodeCount, nb_limits)
+        t.Errorf("Expected %v Limits and len is %v", nodeCount, nb_limits)
     }
 
     for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
         if limit.Path == "/foo" {
             if limit.AvailSpace != 10309258240 {
-                t.Error(
+                t.Errorf(
                     "Expected %v for available space in path %v, got %v",
                     1811939328,
                     limit.Path,
