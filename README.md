@@ -27,6 +27,7 @@ Help is displayed with `-h`.
 | -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile true' to get more metrics
 | -version                 | -                   | Prints version information
 | -volumes                 | `_all`              | Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics
+| -mounts-only             | `false`             | Monitor only mount points (useful for client nodes), set ' -mounts-only=true'
 
 
 ## Make
