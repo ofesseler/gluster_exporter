@@ -24,7 +24,7 @@ Help is displayed with `-h`.
 | -log.format              | `logger:stderr`     | Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true"
 | -log.level               | `info`              | Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal]
 | -metrics-path            | `/metrics`          | URL Endpoint for metrics
-| -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile true' to get more metrics
+| -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile=true' to get more metrics
 | -version                 | -                   | Prints version information
 | -volumes                 | `_all`              | Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics
 | -mounts-only             | `false`             | Monitor only mount points (useful for client nodes), set ' -mounts-only=true'
