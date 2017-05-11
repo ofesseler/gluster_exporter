@@ -24,6 +24,9 @@ Help is displayed with `-h`.
 | -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile true' to get more metrics
 | -version                 | -                   | Prints version information
 | -volumes                 | `_all`              | Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics
+| -quota                   | `false`             | When quota in gluster are enabled, set '-quota' to get more metrics
+| -no-heal-scrape          | `false`             | The exporter will not get metrics about healing files
+
 
 
 ## Make
@@ -40,8 +43,8 @@ docker: build and run in docker container
 **docker**: runs docker build and copys new builded gluster_exporter
 
 
-## Relevant Gluster Metrics  
-Commands within the exporter are executed with `--xml`.  
+## Relevant Gluster Metrics
+Commands within the exporter are executed with `--xml`.
 
 ### Command: `gluster volume info`
 
@@ -78,7 +81,7 @@ with `gluster volume info` this is obsolete
 | volProfile.cumulativeStatus.duration               | Count    | implemented     |
 | volProfile.cumulativeStatus.totalRead              | Count    | implemented     |
 | volProfile.cumulativeStatus.totalWrite             | Count    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending | 
+| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending |
 | volProfile.cumulativeStats.fopStats.fop.hits       | count    | implemented     |
 | volProfile.cumulativeStats.fopStats.fop.avgLatency | Gauge    | implemented     |
 | volProfile.cumulativeStats.fopStats.fop.minLatency | Gauge    | implemented     |
