@@ -173,6 +173,7 @@ type Exporter struct {
 	volumes  []string
 	profile  bool
 	quota    bool
+	noHeal   bool
 }
 
 // Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
@@ -327,12 +328,14 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		vols = volumeList.Volume
 	}
 
-	for _, vol := range vols {
-		filesCount, volumeHealErr := ExecVolumeHealInfo(vol)
-		if volumeHealErr == nil {
-			ch <- prometheus.MustNewConstMetric(
-				healInfoFilesCount, prometheus.CounterValue, float64(filesCount), vol,
-			)
+	if !e.noHeal {
+		for _, vol := range vols {
+			filesCount, volumeHealErr := ExecVolumeHealInfo(vol)
+			if volumeHealErr == nil {
+				ch <- prometheus.MustNewConstMetric(
+					healInfoFilesCount, prometheus.CounterValue, float64(filesCount), vol,
+				)
+			}
 		}
 	}
 
@@ -473,7 +476,7 @@ func ContainsVolume(slice []string, element string) bool {
 }
 
 // NewExporter initialises exporter
-func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool) (*Exporter, error) {
+func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool, noHeal bool) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
@@ -488,6 +491,7 @@ func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, 
 		volumes:  volumes,
 		profile:  profile,
 		quota:    quota,
+		noHeal:   noHeal,
 	}, nil
 }
 
@@ -511,6 +515,7 @@ func main() {
 		glusterVolumes = flag.String("volumes", allVolumes, fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes))
 		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
 		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota true' to get more metrics")
+		noHeal         = flag.Bool("no-heal-scrape", false, "Do not scrape heal info")
 	)
 	flag.Parse()
 
@@ -522,7 +527,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("While trying to get Hostname error happened: %v", err)
 	}
-	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota)
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota, *noHeal)
 	if err != nil {
 		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
 	}
