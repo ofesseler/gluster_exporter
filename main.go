@@ -113,10 +113,14 @@ var (
 		"Maximum fileoperations latency over total uptime",
 		[]string{"volume", "brick", "fop_name"}, nil,
 	)
-
 	peersConnected = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "peers_connected"),
-		"Is peer connected to gluster cluster.",
+		"Cluster peers in Connected status.",
+		nil, nil,
+	)
+	peersTotal = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "peers_total"),
+		"Total number of peers in cluster.",
 		nil, nil,
 	)
 
@@ -185,6 +189,7 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- brickDataRead
 	ch <- brickDataWritten
 	ch <- peersConnected
+	ch <- peersTotal
 	ch <- nodeSizeFreeBytes
 	ch <- nodeSizeTotalBytes
 	ch <- brickFopHits
@@ -247,12 +252,20 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	if peerStatusErr != nil {
 		log.Errorf("couldn't parse xml of peer status: %v", peerStatusErr)
 	}
-	count := 0
-	for range peerStatus.Peer {
-		count++
+
+	countTotal := 0
+	countConnected := 0
+    for p := range peerStatus.Peer {
+		countTotal++
+		if p.Connected == 1 {
+		    countConnected++
+        }
 	}
 	ch <- prometheus.MustNewConstMetric(
-		peersConnected, prometheus.GaugeValue, float64(count),
+		peersConnected, prometheus.GaugeValue, float64(countConnected),
+	)
+	ch <- prometheus.MustNewConstMetric(
+		peersTotal, prometheus.GaugeValue, float64(countTotal),
 	)
 
 	// reads profile info
