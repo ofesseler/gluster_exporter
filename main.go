@@ -255,7 +255,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	countTotal := 0
 	countConnected := 0
-    for p := range peerStatus.Peer {
+    for _, p := range peerStatus.Peer {
 		countTotal++
 		if p.Connected == 1 {
 		    countConnected++
