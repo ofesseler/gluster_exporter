@@ -168,12 +168,13 @@ var (
 
 // Exporter holds name, path and volumes to be monitored
 type Exporter struct {
-	hostname   string
-	path       string
-	volumes    []string
-	profile    bool
-	quota      bool
-	mountsOnly bool
+	hostname       string
+	path           string
+	volumes        []string
+	profile        bool
+	quota          bool
+	mountsOnly     bool
+	expectedMounts []mount
 }
 
 // Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
@@ -415,19 +416,21 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		mounts, err := parseMountOutput(mountBuffer.String())
 		if err != nil {
 			log.Error(err)
-			if mounts != nil && len(mounts) > 0 {
-				for _, mount := range mounts {
+		} else {
+			if e.expectedMounts != nil && len(e.expectedMounts) > 0 {
+				for _, expectedMount := range e.expectedMounts {
+					found := float64(0)
+					for _, mount := range mounts {
+						if mount == expectedMount {
+							found = float64(1)
+						}
+					}
 					ch <- prometheus.MustNewConstMetric(
-						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+						mountSuccessful, prometheus.GaugeValue, found, expectedMount.volume, expectedMount.mountPoint,
 					)
 				}
 			}
-		} else {
 			for _, mount := range mounts {
-				ch <- prometheus.MustNewConstMetric(
-					mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
-				)
-
 				isWriteable, err := execTouchOnVolumes(mount.mountPoint)
 				if err != nil {
 					log.Error(err)
@@ -476,7 +479,7 @@ func ContainsVolume(slice []string, element string) bool {
 }
 
 // NewExporter initialises exporter
-func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool, mountsOnly bool) (*Exporter, error) {
+func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool, mountsOnly bool, expectedMounts string) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
@@ -484,14 +487,23 @@ func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, 
 	if len(volumes) < 1 {
 		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumesString)
 	}
+	mounts := make([]mount, 0, 2)
+	if len(expectedMounts) > 0 {
+		expectedMountsSplit := strings.Split(expectedMounts, ",")
+		for _, expectedMount := range expectedMountsSplit {
+			split := strings.Split(expectedMount, "=")
+			mounts = append(mounts, mount{mountPoint: split[0], volume: split[1]})
+		}
+	}
 
 	return &Exporter{
-		hostname:   hostname,
-		path:       glusterExecPath,
-		volumes:    volumes,
-		profile:    profile,
-		quota:      quota,
-		mountsOnly: mountsOnly,
+		hostname:       hostname,
+		path:           glusterExecPath,
+		volumes:        volumes,
+		profile:        profile,
+		quota:          quota,
+		mountsOnly:     mountsOnly,
+		expectedMounts: mounts,
 	}, nil
 }
 
@@ -516,6 +528,7 @@ func main() {
 		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile=true' to get more metrics")
 		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota=true' to get more metrics")
 		mountsOnly     = flag.Bool("mounts-only", false, "Monitor only mount points (useful for client nodes), set ' -mounts-only=true'")
+		expectedMounts = flag.String("expected-mounts", "", "Comma separated expected mounts (<mount-point>=<volume>)")
 	)
 	flag.Parse()
 
@@ -527,7 +540,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("While trying to get Hostname error happened: %v", err)
 	}
-	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota, *mountsOnly)
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota, *mountsOnly, *expectedMounts)
 	if err != nil {
 		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
 	}
