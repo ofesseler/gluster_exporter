@@ -3,6 +3,9 @@
 # gluster_exporter
 Gluster exporter for Prometheus
 
+!!!!! I am currently not actively developing and testing this exporter. If you are, let me know it to help keeping this running. !!!!!!
+
+
 ## Installation
 
 ```
