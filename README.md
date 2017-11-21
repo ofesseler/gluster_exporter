@@ -3,7 +3,7 @@
 # gluster_exporter
 Gluster exporter for Prometheus
 
-!!!!! I am currently not actively developing and testing this exporter. If you are, let me know it to help keeping this running. !!!!!!
+## !!!!! I am currently not actively developing and testing this exporter. If you are, let me know it to help keeping this running. If you are interested in continuing this exporter, please write a mail/bug report /etc. !!!!!!
 
 
 ## Installation
