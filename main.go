@@ -168,11 +168,13 @@ var (
 
 // Exporter holds name, path and volumes to be monitored
 type Exporter struct {
-	hostname string
-	path     string
-	volumes  []string
-	profile  bool
-	quota    bool
+	hostname       string
+	path           string
+	volumes        []string
+	profile        bool
+	quota          bool
+	mountsOnly     bool
+	expectedMounts []mount
 }
 
 // Describe all the metrics exported by Gluster exporter. It implements prometheus.Collector.
@@ -204,135 +206,206 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect collects all the metrics
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-	// Collect metrics from volume info
-	volumeInfo, err := ExecVolumeInfo()
-	// Couldn't parse xml, so something is really wrong and up=0
-	if err != nil {
-		log.Errorf("couldn't parse xml volume info: %v", err)
-		ch <- prometheus.MustNewConstMetric(
-			up, prometheus.GaugeValue, 0.0,
-		)
-	}
-
-	// use OpErrno as indicator for up
-	if volumeInfo.OpErrno != 0 {
-		ch <- prometheus.MustNewConstMetric(
-			up, prometheus.GaugeValue, 0.0,
-		)
-	} else {
-		ch <- prometheus.MustNewConstMetric(
-			up, prometheus.GaugeValue, 1.0,
-		)
-	}
-
-	ch <- prometheus.MustNewConstMetric(
-		volumesCount, prometheus.GaugeValue, float64(volumeInfo.VolInfo.Volumes.Count),
-	)
-
-	for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-		if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
-
+	if !e.mountsOnly {
+		// Collect metrics from volume info
+		volumeInfo, err := ExecVolumeInfo()
+		// Couldn't parse xml, so something is really wrong and up=0
+		if err != nil {
+			log.Errorf("couldn't parse xml volume info: %v", err)
 			ch <- prometheus.MustNewConstMetric(
-				brickCount, prometheus.GaugeValue, float64(volume.BrickCount), volume.Name,
-			)
-
-			ch <- prometheus.MustNewConstMetric(
-				volumeStatus, prometheus.GaugeValue, float64(volume.Status), volume.Name,
+				up, prometheus.GaugeValue, 0.0,
 			)
 		}
-	}
 
-	// reads gluster peer status
-	peerStatus, peerStatusErr := ExecPeerStatus()
-	if peerStatusErr != nil {
-		log.Errorf("couldn't parse xml of peer status: %v", peerStatusErr)
-	}
-	count := 0
-	for range peerStatus.Peer {
-		count++
-	}
-	ch <- prometheus.MustNewConstMetric(
-		peersConnected, prometheus.GaugeValue, float64(count),
-	)
+		// use OpErrno as indicator for up
+		if volumeInfo.OpErrno != 0 {
+			ch <- prometheus.MustNewConstMetric(
+				up, prometheus.GaugeValue, 0.0,
+			)
+		} else {
+			ch <- prometheus.MustNewConstMetric(
+				up, prometheus.GaugeValue, 1.0,
+			)
+		}
 
-	// reads profile info
-	if e.profile {
+		ch <- prometheus.MustNewConstMetric(
+			volumesCount, prometheus.GaugeValue, float64(volumeInfo.VolInfo.Volumes.Count),
+		)
+
 		for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
 			if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
-				volumeProfile, execVolProfileErr := ExecVolumeProfileGvInfoCumulative(volume.Name)
-				if execVolProfileErr != nil {
-					log.Errorf("Error while executing or marshalling gluster profile output: %v", execVolProfileErr)
-				}
-				for _, brick := range volumeProfile.Brick {
-					if strings.HasPrefix(brick.BrickName, e.hostname) {
-						ch <- prometheus.MustNewConstMetric(
-							brickDuration, prometheus.CounterValue, float64(brick.CumulativeStats.Duration), volume.Name, brick.BrickName,
-						)
 
-						ch <- prometheus.MustNewConstMetric(
-							brickDataRead, prometheus.CounterValue, float64(brick.CumulativeStats.TotalRead), volume.Name, brick.BrickName,
-						)
+				ch <- prometheus.MustNewConstMetric(
+					brickCount, prometheus.GaugeValue, float64(volume.BrickCount), volume.Name,
+				)
 
-						ch <- prometheus.MustNewConstMetric(
-							brickDataWritten, prometheus.CounterValue, float64(brick.CumulativeStats.TotalWrite), volume.Name, brick.BrickName,
-						)
-						for _, fop := range brick.CumulativeStats.FopStats.Fop {
+				ch <- prometheus.MustNewConstMetric(
+					volumeStatus, prometheus.GaugeValue, float64(volume.Status), volume.Name,
+				)
+			}
+		}
+
+		// reads gluster peer status
+		peerStatus, peerStatusErr := ExecPeerStatus()
+		if peerStatusErr != nil {
+			log.Errorf("couldn't parse xml of peer status: %v", peerStatusErr)
+		}
+		count := 0
+		for range peerStatus.Peer {
+			count++
+		}
+		ch <- prometheus.MustNewConstMetric(
+			peersConnected, prometheus.GaugeValue, float64(count),
+		)
+
+		// reads profile info
+		if e.profile {
+			for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
+				if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
+					volumeProfile, execVolProfileErr := ExecVolumeProfileGvInfoCumulative(volume.Name)
+					if execVolProfileErr != nil {
+						log.Errorf("Error while executing or marshalling gluster profile output: %v", execVolProfileErr)
+					}
+					for _, brick := range volumeProfile.Brick {
+						if strings.HasPrefix(brick.BrickName, e.hostname) {
 							ch <- prometheus.MustNewConstMetric(
-								brickFopHits, prometheus.CounterValue, float64(fop.Hits), volume.Name, brick.BrickName, fop.Name,
+								brickDuration, prometheus.CounterValue, float64(brick.CumulativeStats.Duration), volume.Name, brick.BrickName,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyAvg, prometheus.CounterValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
+								brickDataRead, prometheus.CounterValue, float64(brick.CumulativeStats.TotalRead), volume.Name, brick.BrickName,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMin, prometheus.CounterValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
+								brickDataWritten, prometheus.CounterValue, float64(brick.CumulativeStats.TotalWrite), volume.Name, brick.BrickName,
 							)
+							for _, fop := range brick.CumulativeStats.FopStats.Fop {
+								ch <- prometheus.MustNewConstMetric(
+									brickFopHits, prometheus.CounterValue, float64(fop.Hits), volume.Name, brick.BrickName, fop.Name,
+								)
 
-							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMax, prometheus.CounterValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
-							)
+								ch <- prometheus.MustNewConstMetric(
+									brickFopLatencyAvg, prometheus.CounterValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
+								)
+
+								ch <- prometheus.MustNewConstMetric(
+									brickFopLatencyMin, prometheus.CounterValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
+								)
+
+								ch <- prometheus.MustNewConstMetric(
+									brickFopLatencyMax, prometheus.CounterValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
+								)
+							}
 						}
 					}
 				}
 			}
 		}
-	}
 
-	// executes gluster status all detail
-	volumeStatusAll, err := ExecVolumeStatusAllDetail()
-	if err != nil {
-		log.Errorf("couldn't parse xml of peer status: %v", err)
-	}
-	for _, vol := range volumeStatusAll.VolStatus.Volumes.Volume {
-		for _, node := range vol.Node {
-			if node.Status != 1 {
+		// executes gluster status all detail
+		volumeStatusAll, err := ExecVolumeStatusAllDetail()
+		if err != nil {
+			log.Errorf("couldn't parse xml of peer status: %v", err)
+		}
+		for _, vol := range volumeStatusAll.VolStatus.Volumes.Volume {
+			for _, node := range vol.Node {
+				if node.Status != 1 {
+				}
+				ch <- prometheus.MustNewConstMetric(
+					nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
+				)
+
+				ch <- prometheus.MustNewConstMetric(
+					nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
+				)
 			}
-			ch <- prometheus.MustNewConstMetric(
-				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
-			)
-
-			ch <- prometheus.MustNewConstMetric(
-				nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
-			)
 		}
-	}
-	vols := e.volumes
-	if vols[0] == allVolumes {
-		log.Warn("no Volumes were given.")
-		volumeList, volumeListErr := ExecVolumeList()
-		if volumeListErr != nil {
-			log.Error(volumeListErr)
+		vols := e.volumes
+		if vols[0] == allVolumes {
+			log.Warn("no Volumes were given.")
+			volumeList, volumeListErr := ExecVolumeList()
+			if volumeListErr != nil {
+				log.Error(volumeListErr)
+			}
+			vols = volumeList.Volume
 		}
-		vols = volumeList.Volume
-	}
 
-	for _, vol := range vols {
-		filesCount, volumeHealErr := ExecVolumeHealInfo(vol)
-		if volumeHealErr == nil {
-			ch <- prometheus.MustNewConstMetric(
-				healInfoFilesCount, prometheus.CounterValue, float64(filesCount), vol,
-			)
+		for _, vol := range vols {
+			filesCount, volumeHealErr := ExecVolumeHealInfo(vol)
+			if volumeHealErr == nil {
+				ch <- prometheus.MustNewConstMetric(
+					healInfoFilesCount, prometheus.CounterValue, float64(filesCount), vol,
+				)
+			}
+		}
+		if e.quota {
+			for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
+				if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
+					volumeQuotaXML, err := ExecVolumeQuotaList(volume.Name)
+					if err != nil {
+						log.Error("Cannot create quota metrics if quotas are not enabled in your gluster server")
+					} else {
+						for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
+							ch <- prometheus.MustNewConstMetric(
+								quotaHardLimit,
+								prometheus.CounterValue,
+								float64(limit.HardLimit),
+								limit.Path,
+								volume.Name,
+							)
+
+							ch <- prometheus.MustNewConstMetric(
+								quotaSoftLimit,
+								prometheus.CounterValue,
+								float64(limit.SoftLimitValue),
+								limit.Path,
+								volume.Name,
+							)
+							ch <- prometheus.MustNewConstMetric(
+								quotaUsed,
+								prometheus.CounterValue,
+								float64(limit.UsedSpace),
+								limit.Path,
+								volume.Name,
+							)
+
+							ch <- prometheus.MustNewConstMetric(
+								quotaAvailable,
+								prometheus.CounterValue,
+								float64(limit.AvailSpace),
+								limit.Path,
+								volume.Name,
+							)
+
+							var slExceeded float64
+							slExceeded = 0.0
+							if limit.SlExceeded != "No" {
+								slExceeded = 1.0
+							}
+							ch <- prometheus.MustNewConstMetric(
+								quotaSoftLimitExceeded,
+								prometheus.CounterValue,
+								slExceeded,
+								limit.Path,
+								volume.Name,
+							)
+
+							var hlExceeded float64
+							hlExceeded = 0.0
+							if limit.HlExceeded != "No" {
+								hlExceeded = 1.0
+							}
+							ch <- prometheus.MustNewConstMetric(
+								quotaHardLimitExceeded,
+								prometheus.CounterValue,
+								hlExceeded,
+								limit.Path,
+								volume.Name,
+							)
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -343,19 +416,21 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		mounts, err := parseMountOutput(mountBuffer.String())
 		if err != nil {
 			log.Error(err)
-			if mounts != nil && len(mounts) > 0 {
-				for _, mount := range mounts {
+		} else {
+			if e.expectedMounts != nil && len(e.expectedMounts) > 0 {
+				for _, expectedMount := range e.expectedMounts {
+					found := float64(0)
+					for _, mount := range mounts {
+						if mount == expectedMount {
+							found = float64(1)
+						}
+					}
 					ch <- prometheus.MustNewConstMetric(
-						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
+						mountSuccessful, prometheus.GaugeValue, found, expectedMount.volume, expectedMount.mountPoint,
 					)
 				}
 			}
-		} else {
 			for _, mount := range mounts {
-				ch <- prometheus.MustNewConstMetric(
-					mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
-				)
-
 				isWriteable, err := execTouchOnVolumes(mount.mountPoint)
 				if err != nil {
 					log.Error(err)
@@ -368,75 +443,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 					ch <- prometheus.MustNewConstMetric(
 						volumeWriteable, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
 					)
-				}
-			}
-		}
-	}
-	if e.quota {
-		for _, volume := range volumeInfo.VolInfo.Volumes.Volume {
-			if e.volumes[0] == allVolumes || ContainsVolume(e.volumes, volume.Name) {
-				volumeQuotaXML, err := ExecVolumeQuotaList(volume.Name)
-				if err != nil {
-					log.Error("Cannot create quota metrics if quotas are not enabled in your gluster server")
-				} else {
-					for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
-						ch <- prometheus.MustNewConstMetric(
-							quotaHardLimit,
-							prometheus.CounterValue,
-							float64(limit.HardLimit),
-							limit.Path,
-							volume.Name,
-						)
-
-						ch <- prometheus.MustNewConstMetric(
-							quotaSoftLimit,
-							prometheus.CounterValue,
-							float64(limit.SoftLimitValue),
-							limit.Path,
-							volume.Name,
-						)
-						ch <- prometheus.MustNewConstMetric(
-							quotaUsed,
-							prometheus.CounterValue,
-							float64(limit.UsedSpace),
-							limit.Path,
-							volume.Name,
-						)
-
-						ch <- prometheus.MustNewConstMetric(
-							quotaAvailable,
-							prometheus.CounterValue,
-							float64(limit.AvailSpace),
-							limit.Path,
-							volume.Name,
-						)
-
-						var slExceeded float64
-						slExceeded = 0.0
-						if limit.SlExceeded != "No" {
-							slExceeded = 1.0
-						}
-						ch <- prometheus.MustNewConstMetric(
-							quotaSoftLimitExceeded,
-							prometheus.CounterValue,
-							slExceeded,
-							limit.Path,
-							volume.Name,
-						)
-
-						var hlExceeded float64
-						hlExceeded = 0.0
-						if limit.HlExceeded != "No" {
-							hlExceeded = 1.0
-						}
-						ch <- prometheus.MustNewConstMetric(
-							quotaHardLimitExceeded,
-							prometheus.CounterValue,
-							hlExceeded,
-							limit.Path,
-							volume.Name,
-						)
-					}
 				}
 			}
 		}
@@ -473,7 +479,7 @@ func ContainsVolume(slice []string, element string) bool {
 }
 
 // NewExporter initialises exporter
-func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool) (*Exporter, error) {
+func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, quota bool, mountsOnly bool, expectedMounts string) (*Exporter, error) {
 	if len(glusterExecPath) < 1 {
 		log.Fatalf("Gluster executable path is wrong: %v", glusterExecPath)
 	}
@@ -481,13 +487,23 @@ func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, 
 	if len(volumes) < 1 {
 		log.Warnf("No volumes given. Proceeding without volume information. Volumes: %v", volumesString)
 	}
+	mounts := make([]mount, 0, 2)
+	if len(expectedMounts) > 0 {
+		expectedMountsSplit := strings.Split(expectedMounts, ",")
+		for _, expectedMount := range expectedMountsSplit {
+			split := strings.Split(expectedMount, "=")
+			mounts = append(mounts, mount{mountPoint: split[0], volume: split[1]})
+		}
+	}
 
 	return &Exporter{
-		hostname: hostname,
-		path:     glusterExecPath,
-		volumes:  volumes,
-		profile:  profile,
-		quota:    quota,
+		hostname:       hostname,
+		path:           glusterExecPath,
+		volumes:        volumes,
+		profile:        profile,
+		quota:          quota,
+		mountsOnly:     mountsOnly,
+		expectedMounts: mounts,
 	}, nil
 }
 
@@ -509,8 +525,10 @@ func main() {
 		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
 		showVersion    = flag.Bool("version", false, "Prints version information")
 		glusterVolumes = flag.String("volumes", allVolumes, fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes))
-		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
-		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota true' to get more metrics")
+		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile=true' to get more metrics")
+		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota=true' to get more metrics")
+		mountsOnly     = flag.Bool("mounts-only", false, "Monitor only mount points (useful for client nodes), set ' -mounts-only=true'")
+		expectedMounts = flag.String("expected-mounts", "", "Comma separated expected mounts (<mount-point>=<volume>)")
 	)
 	flag.Parse()
 
@@ -522,7 +540,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("While trying to get Hostname error happened: %v", err)
 	}
-	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota)
+	exporter, err := NewExporter(hostname, *glusterPath, *glusterVolumes, *profile, *quota, *mountsOnly, *expectedMounts)
 	if err != nil {
 		log.Errorf("Creating new Exporter went wrong, ... \n%v", err)
 	}
