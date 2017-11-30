@@ -89,21 +89,27 @@ func ScrapeProfileStatus(volumeStrings []string, allVolumes string, hostname str
 				)
 
 				for _, fop := range brick.CumulativeStats.FopStats.Fop {
+					// continue and not record metrics if fop.AvgLatency fop.MinLatency fop.MaxLatency all is 0
+					if fop.AvgLatency + fop.MaxLatency + fop.MinLatency == 0 {
+						continue
+					}
+
 					ch <- prometheus.MustNewConstMetric(
 						brickFopHits, prometheus.CounterValue, float64(fop.Hits), volume.Name, brick.BrickName, fop.Name,
 					)
 
 					ch <- prometheus.MustNewConstMetric(
-						brickFopLatencyAvg, prometheus.CounterValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
+						brickFopLatencyAvg, prometheus.GaugeValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
 					)
 
 					ch <- prometheus.MustNewConstMetric(
-						brickFopLatencyMin, prometheus.CounterValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
+						brickFopLatencyMin, prometheus.GaugeValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
 					)
 
 					ch <- prometheus.MustNewConstMetric(
-						brickFopLatencyMax, prometheus.CounterValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
+						brickFopLatencyMax, prometheus.GaugeValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
 					)
+
 				}
 			}
 		}

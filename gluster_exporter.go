@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
 
-	"github.com/ofesseler/gluster_exporter/collector"
+	"github.com/stefanmonkey/gluster_exporter/collector"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

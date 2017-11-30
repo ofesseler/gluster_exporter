@@ -101,10 +101,10 @@ func ScrapeGlobalVolumeStatus(volumeStrings []string, allVolumes string, ch chan
 		for _, node := range vol.Node {
 			if node.Status == 1 {
 				ch <- prometheus.MustNewConstMetric(
-					nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
+					nodeSizeTotalBytes, prometheus.GaugeValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
 				)
 				ch <- prometheus.MustNewConstMetric(
-					nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
+					nodeSizeFreeBytes, prometheus.GaugeValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
 				)
 			}
 		}
