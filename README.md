@@ -3,8 +3,6 @@
 # gluster_exporter
 Gluster exporter for Prometheus
 
-## !!!!! I am currently not actively developing and testing this exporter. If you are, let me know it to help keeping this running. If you are interested in continuing this exporter, please write a mail/bug report /etc. !!!!!!
-
 
 ## Installation
 
@@ -122,6 +120,10 @@ If the following message appears while trying to get some information out of you
 ```
 Another transaction is in progress for gv_cluster. Please try again after sometime
 ```
+
+## Contributors
+- coder-hugo
+- mjtrangoni
 
 ## Similar Projects
 glusterfs exporter for prometheus written in rust.
