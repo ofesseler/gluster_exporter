@@ -1,11 +1,14 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"collector"
+)
 
 func TestContainsVolume(t *testing.T) {
 	expamle := "doge"
 	testSlice := []string{"wow", "such", expamle}
-	if !ContainsVolume(testSlice, expamle) {
+	if !collector.ContainsVolume(testSlice, expamle) {
 		t.Fatalf("Hasn't found %v in slice %v", expamle, testSlice)
 	}
 }
@@ -29,7 +32,7 @@ func TestParseMountOutput(t *testing.T) {
 		},
 	}
 	for _, c := range tests {
-		mounts, err := parseMountOutput(c.mountOutput)
+		mounts, err := collector.ParseMountOutput(c.mountOutput)
 		if err != nil {
 			t.Error(err)
 		}
