@@ -56,8 +56,7 @@ depcheck: $(GODEP)
 gometalinter: $(GOLINTER)
 	@echo ">> linting code"
 	@$(GOLINTER) --install > /dev/null
-	@$(GOLINTER) --vendor ./...
-	#@$(GOLINTER) --config=./.gometalinter.json ./...
+	@$(GOLINTER) --config=./.gometalinter.json ./...
 
 $(GOPATH)/bin/dep dep:
 	@GOOS=$(shell uname -s | tr A-Z a-z) \
