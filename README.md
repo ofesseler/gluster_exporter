@@ -12,27 +12,26 @@ go get github.com/ofesseler/gluster_exporter
 ```
 
 ## Usage of `gluster_exporter`
-Help is displayed with `-h`.
 
-| Option                   | Default             | Description
-| ------------------------ | ------------------- | -----------------
-| -help                    | -                   | Displays usage.
-| -gluster_executable_path | `/usr/sbin/gluster` | Path to gluster executable.
-| -listen-address          | `:9189`             | The address to listen on for HTTP requests.
-| -log.format              | `logger:stderr`     | Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true"
-| -log.level               | `info`              | Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal]
-| -metrics-path            | `/metrics`          | URL Endpoint for metrics
-| -profile                 | `false`             | When profiling reports in gluster are enabled, set ' -profile true' to get more metrics
-| -version                 | -                   | Prints version information
-| -volumes                 | `_all`              | Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics
-
+| Option                    | Default             | Description
+| ------------------------- | ------------------- | -----------------
+| -h, --help                | -                   | Displays usage.
+| --web.listen-address      | `:9189`             | The address to listen on for HTTP requests.
+| --web.metrics-path        | `/metrics`          | URL Endpoint for metrics
+| --gluster.volumes         | `_all`              | Comma separated volume names: vol1,vol2,vol3. Default is '_all' to scrape all metrics
+| --gluster.executable-path | `/usr/sbin/gluster` | Path to gluster executable.
+| --profile                 | `false`             | Enable gluster profiling reports.
+| --quota                   | `false`             | Enable gluster quota reports.
+| --log.format              | `logger:stderr`     | Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true"
+| --log.level               | `info`              | Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal]
+| --version                 | -                   | Prints version information
 
 ## Make
-
-
 ```
 build: Go build
 docker: build and run in docker container
+gometalinter: run some linting checks
+gotest: run go tests and reformats
 
 ```
 
@@ -40,9 +39,12 @@ docker: build and run in docker container
 
 **docker**: runs docker build and copys new builded gluster_exporter
 
+**gometalinter**: runs [gometalinter](https://github.com/alecthomas/gometalinter) lint tools
 
-## Relevant Gluster Metrics  
-Commands within the exporter are executed with `--xml`.  
+**gotest**: runs *vet* and *fmt* go tools
+
+## Relevant Gluster Metrics
+Commands within the exporter are executed with `--xml`.
 
 ### Command: `gluster volume info`
 

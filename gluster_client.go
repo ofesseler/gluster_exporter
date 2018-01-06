@@ -31,12 +31,8 @@ func execMountCheck() (*bytes.Buffer, error) {
 	mountCmd := exec.Command("mount", "-t", "fuse.glusterfs")
 
 	mountCmd.Stdout = stdoutBuffer
-	err := mountCmd.Run()
 
-	if err != nil {
-		return stdoutBuffer, err
-	}
-	return stdoutBuffer, nil
+	return stdoutBuffer, mountCmd.Run()
 }
 
 func execTouchOnVolumes(mountpoint string) (bool, error) {
@@ -162,7 +158,6 @@ func ExecVolumeHealInfo(volumeName string) (int, error) {
 
 // ExecVolumeQuotaList executes volume quota list on host system and processess input
 // returns QuotaList structs and errors
-
 func ExecVolumeQuotaList(volumeName string) (structs.VolumeQuotaXML, error) {
 	args := []string{"volume", "quota", volumeName, "list"}
 	bytesBuffer, cmdErr := execGlusterCommand(args...)

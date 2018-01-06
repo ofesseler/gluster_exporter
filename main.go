@@ -15,7 +15,6 @@
 package main
 
 import (
-	"flag"
 	"net/http"
 
 	"fmt"
@@ -26,6 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -282,15 +282,15 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyAvg, prometheus.CounterValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyAvg, prometheus.CounterValue, fop.AvgLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMin, prometheus.CounterValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyMin, prometheus.CounterValue, fop.MinLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMax, prometheus.CounterValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyMax, prometheus.CounterValue, fop.MaxLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 						}
 					}
@@ -306,8 +306,9 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 	for _, vol := range volumeStatusAll.VolStatus.Volumes.Volume {
 		for _, node := range vol.Node {
-			if node.Status != 1 {
-			}
+			//FIXME: what is this intended for?
+			//if node.Status != 1 {
+			//}
 			ch <- prometheus.MustNewConstMetric(
 				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
 			)
@@ -343,7 +344,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		mounts, err := parseMountOutput(mountBuffer.String())
 		if err != nil {
 			log.Error(err)
-			if mounts != nil && len(mounts) > 0 {
+			if len(mounts) > 0 {
 				for _, mount := range mounts {
 					ch <- prometheus.MustNewConstMetric(
 						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
@@ -411,8 +412,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							volume.Name,
 						)
 
-						var slExceeded float64
-						slExceeded = 0.0
+						slExceeded := 0.0
 						if limit.SlExceeded != "No" {
 							slExceeded = 1.0
 						}
@@ -424,8 +424,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							volume.Name,
 						)
 
-						var hlExceeded float64
-						hlExceeded = 0.0
+						hlExceeded := 0.0
 						if limit.HlExceeded != "No" {
 							hlExceeded = 1.0
 						}
@@ -491,11 +490,6 @@ func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, 
 	}, nil
 }
 
-func versionInfo() {
-	fmt.Println(version.Print("gluster_exporter"))
-	os.Exit(0)
-}
-
 func init() {
 	prometheus.MustRegister(version.NewCollector("gluster_exporter"))
 }
@@ -504,19 +498,22 @@ func main() {
 
 	// commandline arguments
 	var (
-		glusterPath    = flag.String("gluster_executable_path", GlusterCmd, "Path to gluster executable.")
-		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
-		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
-		showVersion    = flag.Bool("version", false, "Prints version information")
-		glusterVolumes = flag.String("volumes", allVolumes, fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes))
-		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
-		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota true' to get more metrics")
+		metricsPath    = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		listenAddress  = kingpin.Flag("web.listen-address", "Address on which to expose metrics and web interface.").Default(":9189").String()
+		glusterPath    = kingpin.Flag("gluster.executable-path", "Path to gluster executable.").Default(GlusterCmd).String()
+		glusterVolumes = kingpin.Flag("gluster.volumes", fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes)).Default(allVolumes).String()
+		profile        = kingpin.Flag("profile", "Enable gluster profiling reports.").Bool()
+		quota          = kingpin.Flag("quota", "Enable gluster quota reports.").Bool()
+		num            int
 	)
-	flag.Parse()
 
-	if *showVersion {
-		versionInfo()
-	}
+	log.AddFlags(kingpin.CommandLine)
+	kingpin.Version(version.Print("gluster_exporter"))
+	kingpin.HelpFlag.Short('h')
+	kingpin.Parse()
+
+	log.Infoln("Starting gluster_exporter", version.Info())
+	log.Infoln("Build context", version.BuildContext())
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -528,18 +525,23 @@ func main() {
 	}
 	prometheus.MustRegister(exporter)
 
-	log.Info("GlusterFS Metrics Exporter v", version.Version)
-
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
+		num, err = w.Write([]byte(`<html>
 			<head><title>GlusterFS Exporter v` + version.Version + `</title></head>
 			<body>
 			<h1>GlusterFS Exporter v` + version.Version + `</h1>
-			<p><a href='` + *metricPath + `'>Metrics</a></p>
+			<p><a href='` + *metricsPath + `'>Metrics</a></p>
 			</body>
-			</html>
-		`))
+			</html>`))
+		if err != nil {
+			log.Fatal(num, err)
+		}
 	})
-	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+
+	log.Infoln("Listening on", *listenAddress)
+	err = http.ListenAndServe(*listenAddress, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

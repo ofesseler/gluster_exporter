@@ -1,8 +1,8 @@
 package structs
 
 import (
-	"bytes"
 	"encoding/xml"
+	"io"
 	"io/ioutil"
 
 	"github.com/prometheus/common/log"
@@ -141,6 +141,7 @@ type Fop struct {
 	MaxLatency float64 `xml:"maxLatency"`
 }
 
+// HealInfoBrick is a struct of HealInfoBricks
 type HealInfoBrick struct {
 	XMLName         xml.Name `xml:"brick"`
 	Name            string   `xml:"name"`
@@ -148,11 +149,13 @@ type HealInfoBrick struct {
 	NumberOfEntries string   `xml:"numberOfEntries"`
 }
 
+// HealInfoBricks is a struct of HealInfo
 type HealInfoBricks struct {
 	XMLName xml.Name        `xml:"bricks"`
 	Brick   []HealInfoBrick `xml:"brick"`
 }
 
+// HealInfo is a struct of VolumenHealInfoXML
 type HealInfo struct {
 	XMLName xml.Name       `xml:"healInfo"`
 	Bricks  HealInfoBricks `xml:"bricks"`
@@ -168,7 +171,7 @@ type VolumeHealInfoXML struct {
 }
 
 // VolumeHealInfoXMLUnmarshall unmarshalls heal info of gluster cluster
-func VolumeHealInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeHealInfoXML, error) {
+func VolumeHealInfoXMLUnmarshall(cmdOutBuff io.Reader) (VolumeHealInfoXML, error) {
 	var vol VolumeHealInfoXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -183,51 +186,51 @@ func VolumeHealInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeHealInfoXML, e
 }
 
 // VolumeListXMLUnmarshall unmarshalls bytes to VolumeListXML struct
-func VolumeListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeListXML, error) {
+func VolumeListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeListXML, error) {
 	var vol VolumeListXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // VolumeInfoXMLUnmarshall unmarshalls bytes to VolumeInfoXML struct
-func VolumeInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeInfoXML, error) {
+func VolumeInfoXMLUnmarshall(cmdOutBuff io.Reader) (VolumeInfoXML, error) {
 	var vol VolumeInfoXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // PeerStatusXMLUnmarshall unmarshalls bytes to PeerStatusXML struct
-func PeerStatusXMLUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXML, error) {
+func PeerStatusXMLUnmarshall(cmdOutBuff io.Reader) (PeerStatusXML, error) {
 	var vol PeerStatusXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // VolumeProfileGvInfoCumulativeXMLUnmarshall unmarshalls cumulative profile of gluster volume profile
-func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeProfileXML, error) {
+func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff io.Reader) (VolumeProfileXML, error) {
 	var vol VolumeProfileXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // VolumeStatusXML XML type of "gluster volume status"
@@ -265,48 +268,52 @@ type VolumeStatusXML struct {
 }
 
 // VolumeStatusAllDetailXMLUnmarshall reads bytes.buffer and returns unmarshalled xml
-func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeStatusXML, error) {
+func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff io.Reader) (VolumeStatusXML, error) {
 	var vol VolumeStatusXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
+// QuotaLimit is a struct of VolQuota
 type QuotaLimit struct {
-    XMLName          xml.Name `xml:"limit"`
-    Path             string   `xml:"path"`
-    HardLimit        uint64   `xml:"hard_limit"`
-    SoftLimitValue   uint64   `xml:"soft_limit_value"`
-    UsedSpace        uint64   `xml:"used_space"`
-    AvailSpace       uint64   `xml:"avail_space"`
-    SlExceeded       string   `xml:"sl_exceeded"`
-    HlExceeded       string   `xml:"hl_exceeded"`
+	XMLName        xml.Name `xml:"limit"`
+	Path           string   `xml:"path"`
+	HardLimit      uint64   `xml:"hard_limit"`
+	SoftLimitValue uint64   `xml:"soft_limit_value"`
+	UsedSpace      uint64   `xml:"used_space"`
+	AvailSpace     uint64   `xml:"avail_space"`
+	SlExceeded     string   `xml:"sl_exceeded"`
+	HlExceeded     string   `xml:"hl_exceeded"`
 }
 
+// VolQuota is a struct of VolumeQuotaXML
 type VolQuota struct {
-    XMLName     xml.Name     `xml:"volQuota"`
-    QuotaLimits []QuotaLimit `xml:"limit"`
+	XMLName     xml.Name     `xml:"volQuota"`
+	QuotaLimits []QuotaLimit `xml:"limit"`
 }
+
 // VolumeQuotaXML XML type of "gluster volume quota list"
 type VolumeQuotaXML struct {
-    XMLName  xml.Name  `xml:"cliOutput"`
-    OpRet     int      `xml:"opRet"`
-    OpErrno   int      `xml:"opErrno"`
-    OpErrstr  string   `xml:"opErrstr"`
-    VolQuota  VolQuota `xml:"volQuota"`
+	XMLName  xml.Name `xml:"cliOutput"`
+	OpRet    int      `xml:"opRet"`
+	OpErrno  int      `xml:"opErrno"`
+	OpErrstr string   `xml:"opErrstr"`
+	VolQuota VolQuota `xml:"volQuota"`
 }
 
-func VolumeQuotaListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeQuotaXML, error) {
+// VolumeQuotaListXMLUnmarshall fuction parse "gluster volume quota list" XML output
+func VolumeQuotaListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeQuotaXML, error) {
 	var volQuotaXML VolumeQuotaXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
 		log.Error(err)
 		return volQuotaXML, err
 	}
-	xml.Unmarshal(b, &volQuotaXML)
-	return volQuotaXML, nil
+	err = xml.Unmarshal(b, &volQuotaXML)
+	return volQuotaXML, err
 }

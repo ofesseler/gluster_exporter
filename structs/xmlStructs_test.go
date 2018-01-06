@@ -58,7 +58,6 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 	testXMLPath := "../test/gluster_peer_status.xml"
 	t.Log("Test xml unmarshal for 'gluster peer status' with file: ", testXMLPath)
 	dat, err := ioutil.ReadFile(testXMLPath)
-	exp := 0
 	if err != nil {
 		t.Errorf("error reading testxml in Path: %v", testXMLPath)
 	}
@@ -67,7 +66,7 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exp = 0
+	exp := 0
 	if peerStatus.OpErrno != exp {
 		t.Fatalf("OpErrno: %v", peerStatus.OpErrno)
 	}
@@ -236,9 +235,9 @@ func TestVolumeHealInfoXMLUnmarshall(t *testing.T) {
 }
 
 func TestVolumeQuotaListXMLUnmarshall(t *testing.T) {
-    testXMLPath := "../test/gluster_volume_quota_list.xml"
-    nodeCount := 2
-    dat, err := ioutil.ReadFile(testXMLPath)
+	testXMLPath := "../test/gluster_volume_quota_list.xml"
+	nodeCount := 2
+	dat, err := ioutil.ReadFile(testXMLPath)
 
 	if err != nil {
 		t.Errorf("error reading testxml in Path: %v", testXMLPath)
@@ -251,22 +250,22 @@ func TestVolumeQuotaListXMLUnmarshall(t *testing.T) {
 	if volumeQuotaXML.OpErrno != 0 {
 		t.Error(volumeQuotaXML.OpErrstr)
 	}
-    nb_limits := len(volumeQuotaXML.VolQuota.QuotaLimits)
-    if nb_limits != nodeCount {
-        t.Errorf("Expected %v Limits and len is %v", nodeCount, nb_limits)
-    }
+	nbLimits := len(volumeQuotaXML.VolQuota.QuotaLimits)
+	if nbLimits != nodeCount {
+		t.Errorf("Expected %v Limits and len is %v", nodeCount, nbLimits)
+	}
 
-    for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
-        if limit.Path == "/foo" {
-            if limit.AvailSpace != 10309258240 {
-                t.Errorf(
-                    "Expected %v for available space in path %v, got %v",
-                    1811939328,
-                    limit.Path,
-                    limit.AvailSpace,
-                )
-            }
-        }
-    }
+	for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
+		if limit.Path == "/foo" {
+			if limit.AvailSpace != 10309258240 {
+				t.Errorf(
+					"Expected %v for available space in path %v, got %v",
+					1811939328,
+					limit.Path,
+					limit.AvailSpace,
+				)
+			}
+		}
+	}
 
 }
