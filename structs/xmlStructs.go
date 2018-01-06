@@ -141,6 +141,7 @@ type Fop struct {
 	MaxLatency float64 `xml:"maxLatency"`
 }
 
+// HealInfoBrick is a struct of HealInfoBricks
 type HealInfoBrick struct {
 	XMLName         xml.Name `xml:"brick"`
 	Name            string   `xml:"name"`
@@ -148,11 +149,13 @@ type HealInfoBrick struct {
 	NumberOfEntries string   `xml:"numberOfEntries"`
 }
 
+// HealInfoBricks is a struct of HealInfo
 type HealInfoBricks struct {
 	XMLName xml.Name        `xml:"bricks"`
 	Brick   []HealInfoBrick `xml:"brick"`
 }
 
+// HealInfo is a struct of VolumenHealInfoXML
 type HealInfo struct {
 	XMLName xml.Name       `xml:"healInfo"`
 	Bricks  HealInfoBricks `xml:"bricks"`
@@ -276,6 +279,7 @@ func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeStatusX
 	return vol, nil
 }
 
+// QuotaLimit is a struct of VolQuota
 type QuotaLimit struct {
 	XMLName        xml.Name `xml:"limit"`
 	Path           string   `xml:"path"`
@@ -287,6 +291,7 @@ type QuotaLimit struct {
 	HlExceeded     string   `xml:"hl_exceeded"`
 }
 
+// VolQuota is a struct of VolumeQuotaXML
 type VolQuota struct {
 	XMLName     xml.Name     `xml:"volQuota"`
 	QuotaLimits []QuotaLimit `xml:"limit"`
@@ -301,6 +306,7 @@ type VolumeQuotaXML struct {
 	VolQuota VolQuota `xml:"volQuota"`
 }
 
+// VolumeQuotaListXMLUnmarshall fuction parse "gluster volume quota list" XML output
 func VolumeQuotaListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeQuotaXML, error) {
 	var volQuotaXML VolumeQuotaXML
 	b, err := ioutil.ReadAll(cmdOutBuff)

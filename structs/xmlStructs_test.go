@@ -251,9 +251,9 @@ func TestVolumeQuotaListXMLUnmarshall(t *testing.T) {
 	if volumeQuotaXML.OpErrno != 0 {
 		t.Error(volumeQuotaXML.OpErrstr)
 	}
-	nb_limits := len(volumeQuotaXML.VolQuota.QuotaLimits)
-	if nb_limits != nodeCount {
-		t.Errorf("Expected %v Limits and len is %v", nodeCount, nb_limits)
+	nbLimits := len(volumeQuotaXML.VolQuota.QuotaLimits)
+	if nbLimits != nodeCount {
+		t.Errorf("Expected %v Limits and len is %v", nodeCount, nbLimits)
 	}
 
 	for _, limit := range volumeQuotaXML.VolQuota.QuotaLimits {
