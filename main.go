@@ -306,8 +306,9 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 	for _, vol := range volumeStatusAll.VolStatus.Volumes.Volume {
 		for _, node := range vol.Node {
-			if node.Status != 1 {
-			}
+			//FIXME: what is this intended for?
+			//if node.Status != 1 {
+			//}
 			ch <- prometheus.MustNewConstMetric(
 				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
 			)
@@ -343,7 +344,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		mounts, err := parseMountOutput(mountBuffer.String())
 		if err != nil {
 			log.Error(err)
-			if mounts != nil && len(mounts) > 0 {
+			if len(mounts) > 0 {
 				for _, mount := range mounts {
 					ch <- prometheus.MustNewConstMetric(
 						mountSuccessful, prometheus.GaugeValue, float64(0), mount.volume, mount.mountPoint,
@@ -411,8 +412,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							volume.Name,
 						)
 
-						var slExceeded float64
-						slExceeded = 0.0
+						slExceeded := 0.0
 						if limit.SlExceeded != "No" {
 							slExceeded = 1.0
 						}
@@ -424,8 +424,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							volume.Name,
 						)
 
-						var hlExceeded float64
-						hlExceeded = 0.0
+						hlExceeded := 0.0
 						if limit.HlExceeded != "No" {
 							hlExceeded = 1.0
 						}

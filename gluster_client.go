@@ -31,12 +31,8 @@ func execMountCheck() (*bytes.Buffer, error) {
 	mountCmd := exec.Command("mount", "-t", "fuse.glusterfs")
 
 	mountCmd.Stdout = stdoutBuffer
-	err := mountCmd.Run()
 
-	if err != nil {
-		return stdoutBuffer, err
-	}
-	return stdoutBuffer, nil
+	return stdoutBuffer, mountCmd.Run()
 }
 
 func execTouchOnVolumes(mountpoint string) (bool, error) {
