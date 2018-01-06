@@ -1,5 +1,11 @@
+sudo: false
+
 language: go
 
 go:
-  - 1.7.3
-  - master
+- 1.9.x
+- tip
+
+script:
+  - make build
+  - make gometalinter

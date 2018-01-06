@@ -4,7 +4,8 @@ pkgs         = $(shell $(GO) list ./... | grep -v /vendor/)
 PROMU        ?= $(GOPATH)/bin/promu
 GODEP        ?= $(GOPATH)/bin/dep
 GOLINTER     ?= $(GOPATH)/bin/gometalinter
-BIN_DIR      ?= $(shell pwd)
+GOLINTOPS    ?= --vendor --deadline=6m --disable=gas --cyclo-over=40
+BIN_DIR      ?= $(shell pwd):x
 TARGET       ?= gluster_exporter
 
 info:
@@ -56,12 +57,12 @@ depcheck: $(GODEP)
 gometalinter: $(GOLINTER)
 	@echo ">> linting code"
 	@$(GOLINTER) --install > /dev/null
-	@$(GOLINTER) --config=./.gometalinter.json ./...
+	@$(GOLINTER) $(GOLINTOPS) ./...
 
 $(GOPATH)/bin/dep dep:
 	@GOOS=$(shell uname -s | tr A-Z a-z) \
 		GOARCH=$(subst x86_64,amd64,$(patsubst i%86,386,$(shell uname -m))) \
-		$(GO) get -u github.com/golang/dep
+		$(GO) get -u github.com/golang/dep/cmd/dep
 
 $(GOPATH)/bin/gometalinter lint:
 	@GOOS=$(shell uname -s | tr A-Z a-z) \

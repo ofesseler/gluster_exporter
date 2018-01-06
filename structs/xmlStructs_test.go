@@ -58,7 +58,6 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 	testXMLPath := "../test/gluster_peer_status.xml"
 	t.Log("Test xml unmarshal for 'gluster peer status' with file: ", testXMLPath)
 	dat, err := ioutil.ReadFile(testXMLPath)
-	exp := 0
 	if err != nil {
 		t.Errorf("error reading testxml in Path: %v", testXMLPath)
 	}
@@ -67,7 +66,7 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exp = 0
+	exp := 0
 	if peerStatus.OpErrno != exp {
 		t.Fatalf("OpErrno: %v", peerStatus.OpErrno)
 	}
