@@ -529,16 +529,20 @@ func main() {
 
 	log.Info("GlusterFS Metrics Exporter v", version.Version)
 
+	var num int
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
+		num, err = w.Write([]byte(`<html>
 			<head><title>GlusterFS Exporter v` + version.Version + `</title></head>
 			<body>
 			<h1>GlusterFS Exporter v` + version.Version + `</h1>
 			<p><a href='` + *metricPath + `'>Metrics</a></p>
 			</body>
-			</html>
-		`))
+			</html>`))
+		if err != nil {
+			log.Fatal(num, err)
+		}
 	})
+
 	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }

@@ -193,8 +193,8 @@ func VolumeListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeListXML, error) {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // VolumeInfoXMLUnmarshall unmarshalls bytes to VolumeInfoXML struct
@@ -205,8 +205,8 @@ func VolumeInfoXMLUnmarshall(cmdOutBuff io.Reader) (VolumeInfoXML, error) {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // PeerStatusXMLUnmarshall unmarshalls bytes to PeerStatusXML struct
@@ -217,8 +217,8 @@ func PeerStatusXMLUnmarshall(cmdOutBuff io.Reader) (PeerStatusXML, error) {
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // VolumeProfileGvInfoCumulativeXMLUnmarshall unmarshalls cumulative profile of gluster volume profile
@@ -229,8 +229,8 @@ func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff io.Reader) (VolumePro
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // VolumeStatusXML XML type of "gluster volume status"
@@ -275,8 +275,8 @@ func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff io.Reader) (VolumeStatusXML, 
 		log.Error(err)
 		return vol, err
 	}
-	xml.Unmarshal(b, &vol)
-	return vol, nil
+	err = xml.Unmarshal(b, &vol)
+	return vol, err
 }
 
 // QuotaLimit is a struct of VolQuota
@@ -314,6 +314,6 @@ func VolumeQuotaListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeQuotaXML, error) 
 		log.Error(err)
 		return volQuotaXML, err
 	}
-	xml.Unmarshal(b, &volQuotaXML)
-	return volQuotaXML, nil
+	err = xml.Unmarshal(b, &volQuotaXML)
+	return volQuotaXML, err
 }
