@@ -28,11 +28,11 @@ Help is displayed with `-h`.
 
 
 ## Make
-
-
 ```
 build: Go build
 docker: build and run in docker container
+gometalinter: run some linting checks
+gotest: run go tests and reformats
 
 ```
 
@@ -40,9 +40,12 @@ docker: build and run in docker container
 
 **docker**: runs docker build and copys new builded gluster_exporter
 
+**gometalinter**: runs [gometalinter](https://github.com/alecthomas/gometalinter) lint tools
 
-## Relevant Gluster Metrics  
-Commands within the exporter are executed with `--xml`.  
+**gotest**: runs *vet* and *fmt* go tools
+
+## Relevant Gluster Metrics
+Commands within the exporter are executed with `--xml`.
 
 ### Command: `gluster volume info`
 
