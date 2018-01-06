@@ -1,8 +1,8 @@
 package structs
 
 import (
-	"bytes"
 	"encoding/xml"
+	"io"
 	"io/ioutil"
 
 	"github.com/prometheus/common/log"
@@ -171,7 +171,7 @@ type VolumeHealInfoXML struct {
 }
 
 // VolumeHealInfoXMLUnmarshall unmarshalls heal info of gluster cluster
-func VolumeHealInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeHealInfoXML, error) {
+func VolumeHealInfoXMLUnmarshall(cmdOutBuff io.Reader) (VolumeHealInfoXML, error) {
 	var vol VolumeHealInfoXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -186,7 +186,7 @@ func VolumeHealInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeHealInfoXML, e
 }
 
 // VolumeListXMLUnmarshall unmarshalls bytes to VolumeListXML struct
-func VolumeListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeListXML, error) {
+func VolumeListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeListXML, error) {
 	var vol VolumeListXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -198,7 +198,7 @@ func VolumeListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeListXML, error) {
 }
 
 // VolumeInfoXMLUnmarshall unmarshalls bytes to VolumeInfoXML struct
-func VolumeInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeInfoXML, error) {
+func VolumeInfoXMLUnmarshall(cmdOutBuff io.Reader) (VolumeInfoXML, error) {
 	var vol VolumeInfoXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -210,7 +210,7 @@ func VolumeInfoXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeInfoXML, error) {
 }
 
 // PeerStatusXMLUnmarshall unmarshalls bytes to PeerStatusXML struct
-func PeerStatusXMLUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXML, error) {
+func PeerStatusXMLUnmarshall(cmdOutBuff io.Reader) (PeerStatusXML, error) {
 	var vol PeerStatusXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -222,7 +222,7 @@ func PeerStatusXMLUnmarshall(cmdOutBuff *bytes.Buffer) (PeerStatusXML, error) {
 }
 
 // VolumeProfileGvInfoCumulativeXMLUnmarshall unmarshalls cumulative profile of gluster volume profile
-func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeProfileXML, error) {
+func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff io.Reader) (VolumeProfileXML, error) {
 	var vol VolumeProfileXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -268,7 +268,7 @@ type VolumeStatusXML struct {
 }
 
 // VolumeStatusAllDetailXMLUnmarshall reads bytes.buffer and returns unmarshalled xml
-func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeStatusXML, error) {
+func VolumeStatusAllDetailXMLUnmarshall(cmdOutBuff io.Reader) (VolumeStatusXML, error) {
 	var vol VolumeStatusXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
@@ -307,7 +307,7 @@ type VolumeQuotaXML struct {
 }
 
 // VolumeQuotaListXMLUnmarshall fuction parse "gluster volume quota list" XML output
-func VolumeQuotaListXMLUnmarshall(cmdOutBuff *bytes.Buffer) (VolumeQuotaXML, error) {
+func VolumeQuotaListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeQuotaXML, error) {
 	var volQuotaXML VolumeQuotaXML
 	b, err := ioutil.ReadAll(cmdOutBuff)
 	if err != nil {
