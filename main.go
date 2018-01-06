@@ -15,7 +15,6 @@
 package main
 
 import (
-	"flag"
 	"net/http"
 
 	"fmt"
@@ -26,6 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -490,11 +490,6 @@ func NewExporter(hostname, glusterExecPath, volumesString string, profile bool, 
 	}, nil
 }
 
-func versionInfo() {
-	fmt.Println(version.Print("gluster_exporter"))
-	os.Exit(0)
-}
-
 func init() {
 	prometheus.MustRegister(version.NewCollector("gluster_exporter"))
 }
@@ -503,19 +498,22 @@ func main() {
 
 	// commandline arguments
 	var (
-		glusterPath    = flag.String("gluster_executable_path", GlusterCmd, "Path to gluster executable.")
-		metricPath     = flag.String("metrics-path", "/metrics", "URL Endpoint for metrics")
-		listenAddress  = flag.String("listen-address", ":9189", "The address to listen on for HTTP requests.")
-		showVersion    = flag.Bool("version", false, "Prints version information")
-		glusterVolumes = flag.String("volumes", allVolumes, fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes))
-		profile        = flag.Bool("profile", false, "When profiling reports in gluster are enabled, set ' -profile true' to get more metrics")
-		quota          = flag.Bool("quota", false, "When quota in gluster are enabled, set ' -quota true' to get more metrics")
+		metricsPath    = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		listenAddress  = kingpin.Flag("web.listen-address", "Address on which to expose metrics and web interface.").Default(":9189").String()
+		glusterPath    = kingpin.Flag("gluster.executable-path", "Path to gluster executable.").Default(GlusterCmd).String()
+		glusterVolumes = kingpin.Flag("gluster.volumes", fmt.Sprintf("Comma separated volume names: vol1,vol2,vol3. Default is '%v' to scrape all metrics", allVolumes)).Default(allVolumes).String()
+		profile        = kingpin.Flag("profile", "Enable gluster profiling reports.").Bool()
+		quota          = kingpin.Flag("quota", "Enable gluster quota reports.").Bool()
+		num            int
 	)
-	flag.Parse()
 
-	if *showVersion {
-		versionInfo()
-	}
+	log.AddFlags(kingpin.CommandLine)
+	kingpin.Version(version.Print("gluster_exporter"))
+	kingpin.HelpFlag.Short('h')
+	kingpin.Parse()
+
+	log.Infoln("Starting gluster_exporter", version.Info())
+	log.Infoln("Build context", version.BuildContext())
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -527,16 +525,13 @@ func main() {
 	}
 	prometheus.MustRegister(exporter)
 
-	log.Info("GlusterFS Metrics Exporter v", version.Version)
-
-	var num int
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		num, err = w.Write([]byte(`<html>
 			<head><title>GlusterFS Exporter v` + version.Version + `</title></head>
 			<body>
 			<h1>GlusterFS Exporter v` + version.Version + `</h1>
-			<p><a href='` + *metricPath + `'>Metrics</a></p>
+			<p><a href='` + *metricsPath + `'>Metrics</a></p>
 			</body>
 			</html>`))
 		if err != nil {
@@ -544,5 +539,9 @@ func main() {
 		}
 	})
 
-	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+	log.Infoln("Listening on", *listenAddress)
+	err = http.ListenAndServe(*listenAddress, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
