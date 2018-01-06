@@ -282,15 +282,15 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyAvg, prometheus.CounterValue, float64(fop.AvgLatency), volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyAvg, prometheus.CounterValue, fop.AvgLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMin, prometheus.CounterValue, float64(fop.MinLatency), volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyMin, prometheus.CounterValue, fop.MinLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMax, prometheus.CounterValue, float64(fop.MaxLatency), volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyMax, prometheus.CounterValue, fop.MaxLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 						}
 					}
