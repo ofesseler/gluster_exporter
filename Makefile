@@ -10,7 +10,6 @@ info:
 
 build: gotest
 	$(PROMU) build
-	#$(GO) build -o gluster_exporter
 
 docker: gotest build
 	docker build -t gluster-exporter-test .
