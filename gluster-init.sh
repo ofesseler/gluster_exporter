@@ -1,20 +1,33 @@
 #! /bin/bash
 
-service glusterfs-server start
+#GlusterFS configuration variables
+VOLNAME="data"
 
-gluster volume create data $(hostname):/data force
-gluster volume start data
-gluster volume profile data start
+# Start gluster manually (systemd is not running)
+/usr/sbin/glusterd -p /var/run/glusterd.pid --log-level INFO &
+# Wait to start configuring gluster
+sleep 30
+# Create a volume
+gluster volume create "$VOLNAME" "$(hostname)":/"$VOLNAME" force
+# Start Gluster volume
+gluster volume start "$VOLNAME"
+# Enable gluster profile
+gluster volume profile "$VOLNAME" start
 
-glusterfs --volfile-server=localhost --volfile-id=data /mnt/data
+# Mount the volume
+glusterfs --volfile-server=localhost --volfile-id="$VOLNAME" /mnt/"$VOLNAME"
 
-dd if=/dev/zero of=/mnt/data/test.zero bs=1M count=10
-dd if=/dev/urandom of=/mnt/data/test.random bs=1M count=10
+# Write something to the volume
+dd if=/dev/zero of=/mnt/"$VOLNAME"/test.zero bs=1M count=10
+dd if=/dev/urandom of=/mnt/"$VOLNAME"/test.random bs=1M count=10
 
+# Show the exporter version
 /usr/bin/gluster_exporter --version
 
-/usr/bin/gluster_exporter --profile
+# Start gluster_exporter
+/usr/bin/gluster_exporter --gluster.volumes="data" --profile
 
-service glusterfs-server stop
+# Stop glusterfs
+kill -9 "$(cat /var/run/glusterd.pid)"
 
 exit 0
