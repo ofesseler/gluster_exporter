@@ -306,9 +306,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 	for _, vol := range volumeStatusAll.VolStatus.Volumes.Volume {
 		for _, node := range vol.Node {
-			//FIXME: what is this intended for?
-			//if node.Status != 1 {
-			//}
 			ch <- prometheus.MustNewConstMetric(
 				nodeSizeTotalBytes, prometheus.CounterValue, float64(node.SizeTotal), node.Hostname, node.Path, vol.VolName,
 			)

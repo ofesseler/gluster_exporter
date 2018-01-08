@@ -1,4 +1,4 @@
-GO           ?= GO15VENDOREXPERIMENT=1 go
+GO           ?= go
 GOPATH       := $(firstword $(subst :, ,$(shell $(GO) env GOPATH)))
 pkgs         = $(shell $(GO) list ./... | grep -v /vendor/)
 PROMU        ?= $(GOPATH)/bin/promu
@@ -20,7 +20,7 @@ build: depcheck $(PROMU) gotest
 
 docker: gotest build
 	docker build -t gluster-exporter-test .
-	docker run --rm --privileged=true -p 9189:9189 -p 24007:24007 -p 24008:24008 -i -v gluster-test:/data gluster-exporter-test
+	docker run --rm --privileged=true -p 9189:9189 -p 24007:24007 -p 24009-24108:24009-24108/tcp -i -v gluster-test:/data gluster-exporter-test
 
 gotest: vet format
 	@echo ">> running tests"
