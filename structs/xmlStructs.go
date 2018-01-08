@@ -261,6 +261,10 @@ type VolumeStatusXML struct {
 					BlockSize  int    `xml:"blockSize"`
 					MntOptions string `xml:"mntOptions"`
 					FsName     string `xml:"fsName"`
+					// As of Gluster3.12 this shows filesystem type. Bug?
+					//InodeSize  uint64 `xml:"inodeSize"`
+					InodesTotal uint64 `xml:"inodesTotal"`
+					InodesFree  uint64 `xml:"inodesFree"`
 				} `xml:"node"`
 			} `xml:"volume"`
 		} `xml:"volumes"`
