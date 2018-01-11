@@ -103,7 +103,7 @@ var (
 	)
 
 	brickFopHits = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "brick_fop_hits"),
+		prometheus.BuildFQName(namespace, "", "brick_fop_hits_total"),
 		"Total amount of file operation hits.",
 		[]string{"volume", "brick", "fop_name"}, nil,
 	)
@@ -294,15 +294,15 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyAvg, prometheus.CounterValue, fop.AvgLatency, volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyAvg, prometheus.GaugeValue, fop.AvgLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMin, prometheus.CounterValue, fop.MinLatency, volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyMin, prometheus.GaugeValue, fop.MinLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 
 							ch <- prometheus.MustNewConstMetric(
-								brickFopLatencyMax, prometheus.CounterValue, fop.MaxLatency, volume.Name, brick.BrickName, fop.Name,
+								brickFopLatencyMax, prometheus.GaugeValue, fop.MaxLatency, volume.Name, brick.BrickName, fop.Name,
 							)
 						}
 					}

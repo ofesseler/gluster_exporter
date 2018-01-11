@@ -76,16 +76,16 @@ with `gluster volume info` this is obsolete
 
 | Name                                               | type     | impl. state |
 | -------------------------------------------------- | -------- | ------------|
-| volProfile.profileOp                               | Gauge    | pending     |
-| volProfile.brickCount                              | Gauge    | pending     |
-| volProfile.cumulativeStatus.duration               | Count    | implemented     |
-| volProfile.cumulativeStatus.totalRead              | Count    | implemented     |
-| volProfile.cumulativeStatus.totalWrite             | Count    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending | 
-| volProfile.cumulativeStats.fopStats.fop.hits       | count    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.avgLatency | Gauge    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.minLatency | Gauge    | implemented     |
-| volProfile.cumulativeStats.fopStats.fop.maxLatency | Gauge    | implemented     |
+| VolProfile.ProfileOp                               | Gauge    | pending     |
+| VolProfile.BrickCount                              | Gauge    | pending     |
+| VolProfile.CumulativeStatus.Duration               | Count    | implemented     |
+| VolProfile.CumulativeStatus.TotalRead              | Count    | implemented     |
+| VolProfile.CumulativeStatus.TotalWrite             | Count    | implemented     |
+| VolProfile.CumulativeStats.FopStats.Fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending |
+| VolProfile.CumulativeStats.FopStats.Fop.Hits       | Count    | implemented     |
+| VolProfile.CumulativeStats.FopStats.Fop.AvgLatency | Gauge    | implemented     |
+| VolProfile.CumulativeStats.FopStats.Fop.MinLatency | Gauge    | implemented     |
+| VolProfile.CumulativeStats.FopStats.Fop.MaxLatency | Gauge    | implemented     |
 
 
 ### Command `gluster volume status all detail`
@@ -111,7 +111,7 @@ with `gluster volume info` this is obsolete
 | brick_duration 		| Time running volume brick.    |
 | brick_data_read 		| Total amount of data read by brick.    |
 | brick_data_written 	| Total amount of data written by brick.    |
-| brick_fop_hits 		| Total amount of file operation hits.    |
+| brick_fop_hits_total		| Total amount of file operation hits.    |
 | brick_fop_latency_avg | Average fileoperations latency over total uptime    |
 | brick_fop_latency_min | Minimum fileoperations latency over total uptime    |
 | brick_fop_latency_max | Maximum fileoperations latency over total uptime    |
