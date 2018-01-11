@@ -57,6 +57,7 @@ Commands within the exporter are executed with `--xml`.
 | Volumes.Count | Gauge    | implemented |
 | Volume.Status | Gauge    | implemented |
 
+
 ### Command: `gluster peer status`
 
 | Name                      | type     | impl. state |
@@ -64,13 +65,6 @@ Commands within the exporter are executed with `--xml`.
 | peerStatus.peer.state     | Gauge    | pending     |
 | peerStatus.peer.connected | Gauge    | implemented |
 
-### Command: `gluster volume list`
-with `gluster volume info` this is obsolete
-
-| Name           | type     | impl. state |
-| -------------- | -------- | ------------|
-| volList.count  | Gauge    | pending     |
-| volList.volume | string   | pending |
 
 ### Command: `gluster volume profile gv_test info cumulative`
 
@@ -119,6 +113,7 @@ with `gluster volume info` this is obsolete
 | heal_info_files_count | File count of files out of sync, when calling 'gluster v heal VOLNAME info    |
 | volume_writeable 		| Writes and deletes file in Volume and checks if it is writeable    |
 | mount_successful 		| Checks if mountpoint exists, returns a bool value 0 or 1    |
+
 
 ## Troubleshooting
 If the following message appears while trying to get some information out of your gluster. Increase scrape interval in `prometheus.yml` to at least 30s.
