@@ -100,21 +100,21 @@ with `gluster volume info` this is obsolete
 ### Metrics in prometheus
 | Name          		| Descritpion     |
 | ------------  		| -------- |
-| up       				| Was the last query of Gluster successful.    |
-| volumes_count         | How many volumes were up at the last query.    |
-| volume_status        	| Status code of requested volume.    |
-| node_size_free_bytes	| Free bytes reported for each node on each instance. Labels are to distinguish origins    |
-| node_size_bytes_total	| Total bytes reported for each node on each instance. Labels are to distinguish origins    |
-| node_inodes_free	| Free inodes reported for each node on each instance. Labels are to distinguish origins    |
-| node_inodes_total	| Total inodes reported for each node on each instance. Labels are to distinguish origins    |
-| brick_available 		| Number of bricks available at last query.    |
-| brick_duration 		| Time running volume brick.    |
-| brick_data_read 		| Total amount of data read by brick.    |
-| brick_data_written 	| Total amount of data written by brick.    |
+| up			| Was the last query of Gluster successful.    |
+| volumes_available	| How many volumes were up at the last query.    |
+| volume_status		| Status code of requested volume.    |
+| node_size_free_bytes	| Free bytes reported for each node on each instance. Labels are to distinguish origins.   |
+| node_size_bytes_total	| Total bytes reported for each node on each instance. Labels are to distinguish origins.   |
+| node_inodes_free	| Free inodes reported for each node on each instance. Labels are to distinguish origins.   |
+| node_inodes_total	| Total inodes reported for each node on each instance. Labels are to distinguish origins.   |
+| brick_available		| Number of bricks available at last query.    |
+| brick_duration		| Time running volume brick.    |
+| brick_data_read		| Total amount of data read by brick.    |
+| brick_data_written		| Total amount of data written by brick.    |
 | brick_fop_hits_total		| Total amount of file operation hits.    |
-| brick_fop_latency_avg | Average fileoperations latency over total uptime    |
-| brick_fop_latency_min | Minimum fileoperations latency over total uptime    |
-| brick_fop_latency_max | Maximum fileoperations latency over total uptime    |
+| brick_fop_latency_avg		| Average fileoperations latency over total uptime    |
+| brick_fop_latency_min		| Minimum fileoperations latency over total uptime    |
+| brick_fop_latency_max		| Maximum fileoperations latency over total uptime    |
 | peers_connected 		| Is peer connected to gluster cluster.    |
 | heal_info_files_count | File count of files out of sync, when calling 'gluster v heal VOLNAME info    |
 | volume_writeable 		| Writes and deletes file in Volume and checks if it is writeable    |

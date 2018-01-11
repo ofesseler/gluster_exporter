@@ -43,7 +43,7 @@ var (
 	)
 
 	volumesCount = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "volumes_count"),
+		prometheus.BuildFQName(namespace, "", "volumes_available"),
 		"How many volumes were up at the last query.",
 		nil, nil,
 	)
