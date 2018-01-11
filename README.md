@@ -91,8 +91,10 @@ with `gluster volume info` this is obsolete
 ### Command `gluster volume status all detail`
 | Name | type | Labels | impl. state |
 |------|------|--------|-------------|
-| volStatus.volumes.volume[].node[].sizeFree  | Gauge | hostname, path, volume | implemented |
-| volStatus.volumes.volume[].node[].sizeTotal | Gauge | hostname, path, volume | implemented |
+| VolStatus.Volumes.Volume[].Node[].SizeFree  | Gauge | hostname, path, volume | implemented |
+| VolStatus.Volumes.Volume[].Node[].SizeTotal | Count | hostname, path, volume | implemented |
+| VolStatus.Volumes.Volume[].Node[].InodesFree  | Gauge | hostname, path, volume | implemented |
+| VolStatus.Volumes.Volume[].Node[].InodesTotal | Count | hostname, path, volume | implemented |
 
 
 ### Metrics in prometheus
@@ -102,7 +104,9 @@ with `gluster volume info` this is obsolete
 | volumes_count         | How many volumes were up at the last query.    |
 | volume_status        	| Status code of requested volume.    |
 | node_size_free_bytes	| Free bytes reported for each node on each instance. Labels are to distinguish origins    |
-| node_size_total_bytes | Total bytes reported for each node on each instance. Labels are to distinguish origins    |
+| node_size_bytes_total	| Total bytes reported for each node on each instance. Labels are to distinguish origins    |
+| node_inodes_free	| Free inodes reported for each node on each instance. Labels are to distinguish origins    |
+| node_inodes_total	| Total inodes reported for each node on each instance. Labels are to distinguish origins    |
 | brick_count 			| Number of bricks at last query.    |
 | brick_duration 		| Time running volume brick.    |
 | brick_data_read 		| Total amount of data read by brick.    |

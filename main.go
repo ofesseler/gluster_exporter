@@ -68,7 +68,7 @@ var (
 
 	nodeInodesTotal = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "node_inodes_total"),
-		"Total inodes bytes reported for each node on each instance. Labels are to distinguish origins",
+		"Total inodes reported for each node on each instance. Labels are to distinguish origins",
 		[]string{"hostname", "path", "volume"}, nil,
 	)
 
