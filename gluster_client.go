@@ -102,9 +102,7 @@ func ExecPeerStatus() (structs.PeerStatus, error) {
 // ExecVolumeProfileGvInfoCumulative executes "gluster volume {volume] profile info cumulative" at the local machine and
 // returns VolumeInfoXML struct and error
 func ExecVolumeProfileGvInfoCumulative(volumeName string) (structs.VolProfile, error) {
-	args := []string{"volume", "profile"}
-	args = append(args, volumeName)
-	args = append(args, "info", "cumulative")
+	args := []string{"volume", "profile", volumeName, "info", "cumulative"}
 	bytesBuffer, cmdErr := execGlusterCommand(args...)
 	if cmdErr != nil {
 		return structs.VolProfile{}, cmdErr

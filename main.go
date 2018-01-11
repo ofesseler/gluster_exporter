@@ -61,8 +61,20 @@ var (
 	)
 
 	nodeSizeTotalBytes = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "node_size_total_bytes"),
+		prometheus.BuildFQName(namespace, "", "node_size_bytes_total"),
 		"Total bytes reported for each node on each instance. Labels are to distinguish origins",
+		[]string{"hostname", "path", "volume"}, nil,
+	)
+
+	nodeInodesTotal = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "node_inodes_total"),
+		"Total inodes bytes reported for each node on each instance. Labels are to distinguish origins",
+		[]string{"hostname", "path", "volume"}, nil,
+	)
+
+	nodeInodesFree = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "", "node_inodes_free"),
+		"Free inodes reported for each node on each instance. Labels are to distinguish origins",
 		[]string{"hostname", "path", "volume"}, nil,
 	)
 
@@ -311,7 +323,14 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			)
 
 			ch <- prometheus.MustNewConstMetric(
-				nodeSizeFreeBytes, prometheus.CounterValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
+				nodeSizeFreeBytes, prometheus.GaugeValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
+			)
+			ch <- prometheus.MustNewConstMetric(
+				nodeInodesTotal, prometheus.CounterValue, float64(node.InodesTotal), node.Hostname, node.Path, vol.VolName,
+			)
+
+			ch <- prometheus.MustNewConstMetric(
+				nodeInodesFree, prometheus.GaugeValue, float64(node.InodesFree), node.Hostname, node.Path, vol.VolName,
 			)
 		}
 	}
