@@ -81,7 +81,7 @@ with `gluster volume info` this is obsolete
 | VolProfile.CumulativeStatus.Duration               | Count    | implemented     |
 | VolProfile.CumulativeStatus.TotalRead              | Count    | implemented     |
 | VolProfile.CumulativeStatus.TotalWrite             | Count    | implemented     |
-| VolProfile.CumulativeStats.FopStats.Fop.Name       | WRITE, STATFS, FLUSH, OPENDIR, CREATE, LOOKUP, READDIR, FINODELK, ENTRYLK, FXATTROP | pending |
+| VolProfile.CumulativeStats.FopStats.Fop.Name       | CREATE, ENTRYLK, FINODELK, FLUSH, FXATTROP, LOOKUP, OPENDIR, READDIR, STATFS, WRITE | implemented as label |
 | VolProfile.CumulativeStats.FopStats.Fop.Hits       | Count    | implemented     |
 | VolProfile.CumulativeStats.FopStats.Fop.AvgLatency | Gauge    | implemented     |
 | VolProfile.CumulativeStats.FopStats.Fop.MinLatency | Gauge    | implemented     |
