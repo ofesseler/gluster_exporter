@@ -79,8 +79,8 @@ var (
 	)
 
 	brickCount = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "brick_count"),
-		"Number of bricks at last query.",
+		prometheus.BuildFQName(namespace, "", "brick_available"),
+		"Number of bricks available at last query.",
 		[]string{"volume"}, nil,
 	)
 

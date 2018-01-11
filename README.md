@@ -77,7 +77,7 @@ with `gluster volume info` this is obsolete
 | Name                                               | type     | impl. state |
 | -------------------------------------------------- | -------- | ------------|
 | VolProfile.ProfileOp                               | Gauge    | pending     |
-| VolProfile.BrickCount                              | Gauge    | pending     |
+| VolProfile.BrickCount                              | Gauge    | implemented     |
 | VolProfile.CumulativeStatus.Duration               | Count    | implemented     |
 | VolProfile.CumulativeStatus.TotalRead              | Count    | implemented     |
 | VolProfile.CumulativeStatus.TotalWrite             | Count    | implemented     |
@@ -107,7 +107,7 @@ with `gluster volume info` this is obsolete
 | node_size_bytes_total	| Total bytes reported for each node on each instance. Labels are to distinguish origins    |
 | node_inodes_free	| Free inodes reported for each node on each instance. Labels are to distinguish origins    |
 | node_inodes_total	| Total inodes reported for each node on each instance. Labels are to distinguish origins    |
-| brick_count 			| Number of bricks at last query.    |
+| brick_available 		| Number of bricks available at last query.    |
 | brick_duration 		| Time running volume brick.    |
 | brick_data_read 		| Total amount of data read by brick.    |
 | brick_data_written 	| Total amount of data written by brick.    |
