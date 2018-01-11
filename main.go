@@ -85,20 +85,20 @@ var (
 	)
 
 	brickDuration = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "brick_duration"),
-		"Time running volume brick.",
+		prometheus.BuildFQName(namespace, "", "brick_duration_seconds_total"),
+		"Time running volume brick in seconds.",
 		[]string{"volume", "brick"}, nil,
 	)
 
 	brickDataRead = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "brick_data_read"),
-		"Total amount of data read by brick.",
+		prometheus.BuildFQName(namespace, "", "brick_data_read_bytes_total"),
+		"Total amount of bytes of data read by brick.",
 		[]string{"volume", "brick"}, nil,
 	)
 
 	brickDataWritten = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "", "brick_data_written"),
-		"Total amount of data written by brick.",
+		prometheus.BuildFQName(namespace, "", "brick_data_written_bytes_total"),
+		"Total amount of bytes of data written by brick.",
 		[]string{"volume", "brick"}, nil,
 	)
 
