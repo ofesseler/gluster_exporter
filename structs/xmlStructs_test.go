@@ -83,7 +83,7 @@ func TestPeerStatusXMLUnmarshall(t *testing.T) {
 
 	expString := "node2.example.local"
 	if peerStatus.PeerStatus.Peer[0].Hostname != expString {
-		t.Fatalf("Hostname in Peer does't match: %v", peerStatus.PeerStatus.Peer[0].Hostname)
+		t.Fatalf("Hostname in Peer doesn't match: %v", peerStatus.PeerStatus.Peer[0].Hostname)
 	}
 
 	t.Log("gluster peer status test was successful.")
@@ -220,7 +220,7 @@ func TestVolumeHealInfoXMLUnmarshall(t *testing.T) {
 		entriesOutOfSync := 0
 		if len(healInfo.HealInfo.Bricks.Brick) != c.nodeCount {
 			t.Error(healInfo.HealInfo.Bricks)
-			t.Errorf("Excpected %v Bricks and len is %v", c.nodeCount, len(healInfo.HealInfo.Bricks.Brick))
+			t.Errorf("Expected %v Bricks and len is %v", c.nodeCount, len(healInfo.HealInfo.Bricks.Brick))
 		}
 		for _, brick := range healInfo.HealInfo.Bricks.Brick {
 			var count int

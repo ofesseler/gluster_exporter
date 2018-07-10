@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/common/log"
 )
 
-// VolumeInfoXML struct repesents cliOutput element of "gluster volume info" command
+// VolumeInfoXML struct represents cliOutput element of "gluster volume info" command
 type VolumeInfoXML struct {
 	XMLName  xml.Name `xml:"cliOutput"`
 	OpRet    int      `xml:"opRet"`
@@ -50,7 +50,7 @@ type Brick struct {
 	IsArbiter int    `xml:"brick>isArbiter"`
 }
 
-// VolumeListXML struct repesents cliOutput element of "gluster volume list" command
+// VolumeListXML struct represents cliOutput element of "gluster volume list" command
 type VolumeListXML struct {
 	XMLName  xml.Name `xml:"cliOutput"`
 	OpRet    int      `xml:"opRet"`
@@ -96,7 +96,7 @@ type Hostnames struct {
 	Hostname string `xml:"hostname"`
 }
 
-// VolumeProfileXML struct repesents cliOutput element of "gluster volume {volume} profile" command
+// VolumeProfileXML struct represents cliOutput element of "gluster volume {volume} profile" command
 type VolumeProfileXML struct {
 	XMLName    xml.Name   `xml:"cliOutput"`
 	OpRet      int        `xml:"opRet"`
@@ -161,7 +161,7 @@ type HealInfo struct {
 	Bricks  HealInfoBricks `xml:"bricks"`
 }
 
-// VolumeHealInfoXML struct repesents cliOutput element of "gluster volume {volume} heal info" command
+// VolumeHealInfoXML struct represents cliOutput element of "gluster volume {volume} heal info" command
 type VolumeHealInfoXML struct {
 	XMLName  xml.Name `xml:"cliOutput"`
 	OpRet    int      `xml:"opRet"`
@@ -310,7 +310,7 @@ type VolumeQuotaXML struct {
 	VolQuota VolQuota `xml:"volQuota"`
 }
 
-// VolumeQuotaListXMLUnmarshall fuction parse "gluster volume quota list" XML output
+// VolumeQuotaListXMLUnmarshall function parse "gluster volume quota list" XML output
 func VolumeQuotaListXMLUnmarshall(cmdOutBuff io.Reader) (VolumeQuotaXML, error) {
 	var volQuotaXML VolumeQuotaXML
 	b, err := ioutil.ReadAll(cmdOutBuff)

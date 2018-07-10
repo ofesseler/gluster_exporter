@@ -154,7 +154,7 @@ func ExecVolumeHealInfo(volumeName string) (int, error) {
 	return entriesOutOfSync, nil
 }
 
-// ExecVolumeQuotaList executes volume quota list on host system and processess input
+// ExecVolumeQuotaList executes volume quota list on host system and processes input
 // returns QuotaList structs and errors
 func ExecVolumeQuotaList(volumeName string) (structs.VolumeQuotaXML, error) {
 	args := []string{"volume", "quota", volumeName, "list"}

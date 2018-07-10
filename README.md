@@ -37,7 +37,7 @@ gotest: run go tests and reformats
 
 **build**: runs go build for gluster_exporter
 
-**docker**: runs docker build and copys new builded gluster_exporter
+**docker**: runs docker build and copy new built gluster_exporter
 
 **gometalinter**: runs [gometalinter](https://github.com/alecthomas/gometalinter) lint tools
 
@@ -92,7 +92,7 @@ Commands within the exporter are executed with `--xml`.
 
 
 ### Metrics in prometheus
-| Name          		| Descritpion     |
+| Name          		| Description     |
 | ------------  		| -------- |
 | up			| Was the last query of Gluster successful.    |
 | volumes_available	| How many volumes were up at the last query.    |
