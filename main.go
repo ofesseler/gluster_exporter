@@ -16,7 +16,7 @@ package main
 
 import (
 	"net/http"
-
+	"regexp"
 	"fmt"
 	"os"
 	"strings"
@@ -531,7 +531,12 @@ func main() {
 	log.Infoln("Starting gluster_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
 
-	hostname, err := os.Hostname()
+	hostnameH, err := os.Hostname()
+        var validval =  regexp.MustCompile(`^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$`)
+        hostnameE := validval.FindStringSubmatch(hostnameH)
+        hostname := hostnameE[1]
+	
+//	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatalf("While trying to get Hostname error happened: %v", err)
 	}
