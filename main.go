@@ -532,7 +532,7 @@ func main() {
 	log.Infoln("Build context", version.BuildContext())
 
 	hostnameH, err := os.Hostname()
-        var validval =  regexp.MustCompile("^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])(\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9]))*$")
+        var validval =  regexp.MustCompile(`^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$`)
         hostnameE := validval.FindStringSubmatch(hostnameH)
         hostname := hostnameE[1]
 	
