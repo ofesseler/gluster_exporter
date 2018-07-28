@@ -4,7 +4,6 @@ pkgs         = $(shell $(GO) list ./... | grep -v /vendor/)
 PROMU        ?= $(GOPATH)/bin/promu
 GODEP        ?= $(GOPATH)/bin/dep
 GOLINTER     ?= $(GOPATH)/bin/gometalinter
-GOLINTOPS    ?= --vendor --deadline=6m --disable=gas --cyclo-over=40
 BIN_DIR      ?= $(shell pwd):x
 TARGET       ?= gluster_exporter
 
@@ -57,7 +56,7 @@ depcheck: $(GODEP)
 gometalinter: $(GOLINTER)
 	@echo ">> linting code"
 	@$(GOLINTER) --install > /dev/null
-	@$(GOLINTER) $(GOLINTOPS) ./...
+	@$(GOLINTER) --config=./.gometalinter.json ./...
 
 $(GOPATH)/bin/dep dep:
 	@GOOS=$(shell uname -s | tr A-Z a-z) \
