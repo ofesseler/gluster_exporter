@@ -148,7 +148,12 @@ func ExecVolumeHealInfo(volumeName string) (int, error) {
 
 	for _, brick := range healInfo.HealInfo.Bricks.Brick {
 		var count int
-		count, _ = strconv.Atoi(brick.NumberOfEntries)
+		var err error
+		count, err = strconv.Atoi(brick.NumberOfEntries)
+		if err != nil {
+			log.Error(err)
+			return -1, err
+		}
 		entriesOutOfSync += count
 	}
 	return entriesOutOfSync, nil
