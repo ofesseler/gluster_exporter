@@ -1,0 +1,16 @@
+[Unit]
+Description=Gluster exporter
+Documentation=https://github.com/ofesseler/gluster_exporter/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=gluster
+Group=gluster
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/gluster_exporter \
+    --web.listen-address=:9189
+
+[Install]
+WantedBy=multi-user.target
