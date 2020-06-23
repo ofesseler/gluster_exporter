@@ -257,42 +257,59 @@ func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff io.Reader) (VolumePro
 	return vol, err
 }
 
-// VolumeStatusXML XML type of "gluster volume status"
+// VolumeStatusXML XML type of "gluster volume status detail"
 type VolumeStatusXML struct {
-	XMLName   xml.Name `xml:"cliOutput"`
-	OpRet     int      `xml:"opRet"`
-	OpErrno   int      `xml:"opErrno"`
-	OpErrstr  string   `xml:"opErrstr"`
-	VolStatus struct {
-		Volumes struct {
-			Volume []struct {
-				VolName   string `xml:"volName"`
-				NodeCount int    `xml:"nodeCount"`
-				Node      []struct {
-					Hostname string `xml:"hostname"`
-					Path     string `xml:"path"`
-					PeerID   string `xml:"peerid"`
-					Status   int    `xml:"status"`
-					Port     int    `xml:"port"`
-					Ports    struct {
-						TCP  int    `xml:"tcp"`
-						RDMA string `xml:"rdma"`
-					} `xml:"ports"`
-					Pid        int    `xml:"pid"`
-					SizeTotal  uint64 `xml:"sizeTotal"`
-					SizeFree   uint64 `xml:"sizeFree"`
-					Device     string `xml:"device"`
-					BlockSize  int    `xml:"blockSize"`
-					MntOptions string `xml:"mntOptions"`
-					FsName     string `xml:"fsName"`
-					// As of Gluster3.12 this shows filesystem type. Bug?
-					//InodeSize  uint64 `xml:"inodeSize"`
-					InodesTotal uint64 `xml:"inodesTotal"`
-					InodesFree  uint64 `xml:"inodesFree"`
-				} `xml:"node"`
-			} `xml:"volume"`
-		} `xml:"volumes"`
-	} `xml:"volStatus"`
+	XMLName   xml.Name  `xml:"cliOutput"`
+	OpRet     int       `xml:"opRet"`
+	OpErrno   int       `xml:"opErrno"`
+	OpErrstr  string    `xml:"opErrstr"`
+	VolStatus VolStatus `xml:"volStatus"`
+}
+
+// VolStatus XML type of "gluster volume status detail"
+type VolStatus struct {
+	XMLName xml.Name   `xml:"volStatus"`
+	Volumes VolumesXML `xml:"volumes"`
+}
+
+// VolumesXML type of "gluster volume status detail"
+type VolumesXML struct {
+	XMLName xml.Name    `xml:"volumes"`
+	Volume  []VolumeXML `xml:"volume"`
+}
+
+// VolumeXML type of "gluster volume status detail"
+type VolumeXML struct {
+	VolName   string `xml:"volName"`
+	NodeCount int    `xml:"nodeCount"`
+	Node      []Node `xml:"node"`
+}
+
+// Node XML type of "gluster volume status detail"
+type Node struct {
+	Hostname   string `xml:"hostname"`
+	Path       string `xml:"path"`
+	PeerID     string `xml:"peerid"`
+	Status     int    `xml:"status"`
+	Port       int    `xml:"port"`
+	Ports      Ports  `xml:"ports"`
+	Pid        int    `xml:"pid"`
+	SizeTotal  uint64 `xml:"sizeTotal"`
+	SizeFree   uint64 `xml:"sizeFree"`
+	Device     string `xml:"device"`
+	BlockSize  int    `xml:"blockSize"`
+	MntOptions string `xml:"mntOptions"`
+	FsName     string `xml:"fsName"`
+	// As of Gluster3.12 this shows filesystem type. Bug?
+	//InodeSize  uint64 `xml:"inodeSize"`
+	InodesTotal uint64 `xml:"inodesTotal"`
+	InodesFree  uint64 `xml:"inodesFree"`
+}
+
+// Ports XML type of "gluster volume status detail"
+type Ports struct {
+	TCP  int    `xml:"tcp"`
+	RDMA string `xml:"rdma"`
 }
 
 // VolumeStatusAllDetailXMLUnmarshall reads bytes.buffer and returns unmarshalled xml
