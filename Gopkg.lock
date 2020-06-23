@@ -45,6 +45,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:96bb45b6d2b7cbe94e4bdcfe562bcf484ed0ac92f368b90145e8874d5f86f09e"
+  name = "github.com/ofesseler/gluster_exporter"
+  packages = ["structs"]
+  pruneopts = "UT"
+  revision = "9beb3a0cb0997961b1bebe5536ae3eb3c334949d"
+  version = "v0.2.7"
+
+[[projects]]
   digest = "1:d14a5f4bfecf017cb780bdde1b6483e5deb87e12c332544d2c430eda58734bcb"
   name = "github.com/prometheus/client_golang"
   packages = [
@@ -131,6 +139,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/ofesseler/gluster_exporter/structs",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/prometheus/common/log",

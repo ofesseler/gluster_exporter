@@ -32,14 +32,23 @@ type Volumes struct {
 
 // Volume element of "gluster volume info" command
 type Volume struct {
-	XMLName    xml.Name `xml:"volume"`
-	Name       string   `xml:"name"`
-	ID         string   `xml:"id"`
-	Status     int      `xml:"status"`
-	StatusStr  string   `xml:"statusStr"`
-	BrickCount int      `xml:"brickCount"`
-	Bricks     []Brick  `xml:"bricks"`
-	DistCount  int      `xml:"distCount"`
+	XMLName         xml.Name `xml:"volume"`
+	Name            string   `xml:"name"`
+	ID              string   `xml:"id"`
+	Status          int      `xml:"status"`
+	StatusStr       string   `xml:"statusStr"`
+	BrickCount      int      `xml:"brickCount"`
+	Bricks          []Brick  `xml:"bricks"`
+	DistCount       int      `xml:"distCount"`
+	SnapshotCount   int      `xml:"snapshotCount"`
+	StripeCount     int      `xml:"stripeCount"`
+	ReplicaCount    int      `xml:"replicaCount"`
+	ArbiterCount    int      `xml:"arbiterCount"`
+	DisperseCount   int      `xml:"disperseCount"`
+	RedundancyCount int      `xml:"redundancyCount"`
+	Type            int      `xml:"type"`
+	TypeStr         string   `xml:"typeStr"`
+	Transport       int      `xml:"transport"`
 }
 
 // Brick element of "gluster volume info" command
@@ -108,6 +117,7 @@ type VolumeProfileXML struct {
 // VolProfile element of "gluster volume {volume} profile" command
 type VolProfile struct {
 	Volname    string         `xml:"volname"`
+	ProfileOp  int            `xml:"profileOp"`
 	BrickCount int            `xml:"brickCount"`
 	Brick      []BrickProfile `xml:"brick"`
 }
@@ -121,10 +131,11 @@ type BrickProfile struct {
 
 // CumulativeStats element of "gluster volume {volume} profile" command
 type CumulativeStats struct {
-	FopStats   FopStats `xml:"fopStats"`
-	Duration   int      `xml:"duration"`
-	TotalRead  int      `xml:"totalRead"`
-	TotalWrite int      `xml:"totalWrite"`
+	BlockStats BlockStats `xml:"blockStats"`
+	FopStats   FopStats   `xml:"fopStats"`
+	Duration   int        `xml:"duration"`
+	TotalRead  int        `xml:"totalRead"`
+	TotalWrite int        `xml:"totalWrite"`
 }
 
 // FopStats element of "gluster volume {volume} profile" command
@@ -141,9 +152,22 @@ type Fop struct {
 	MaxLatency float64 `xml:"maxLatency"`
 }
 
+// BlockStats element of "gluster volume {volume} profile" command
+type BlockStats struct {
+	Block []Block `xml:"block"`
+}
+
+// Block is struct for BlockStats
+type Block struct {
+	Size   int `xml:"size"`
+	Reads  int `xml:"reads"`
+	Writes int `xml:"writes"`
+}
+
 // HealInfoBrick is a struct of HealInfoBricks
 type HealInfoBrick struct {
 	XMLName         xml.Name `xml:"brick"`
+	HostUUID        string   `xml:"hostUuid,attr"`
 	Name            string   `xml:"name"`
 	Status          string   `xml:"status"`
 	NumberOfEntries string   `xml:"numberOfEntries"`
@@ -233,42 +257,59 @@ func VolumeProfileGvInfoCumulativeXMLUnmarshall(cmdOutBuff io.Reader) (VolumePro
 	return vol, err
 }
 
-// VolumeStatusXML XML type of "gluster volume status"
+// VolumeStatusXML XML type of "gluster volume status detail"
 type VolumeStatusXML struct {
-	XMLName   xml.Name `xml:"cliOutput"`
-	OpRet     int      `xml:"opRet"`
-	OpErrno   int      `xml:"opErrno"`
-	OpErrstr  string   `xml:"opErrstr"`
-	VolStatus struct {
-		Volumes struct {
-			Volume []struct {
-				VolName   string `xml:"volName"`
-				NodeCount int    `xml:"nodeCount"`
-				Node      []struct {
-					Hostname string `xml:"hostname"`
-					Path     string `xml:"path"`
-					PeerID   string `xml:"peerid"`
-					Status   int    `xml:"status"`
-					Port     int    `xml:"port"`
-					Ports    struct {
-						TCP  int    `xml:"tcp"`
-						RDMA string `xml:"rdma"`
-					} `xml:"ports"`
-					Pid        int    `xml:"pid"`
-					SizeTotal  uint64 `xml:"sizeTotal"`
-					SizeFree   uint64 `xml:"sizeFree"`
-					Device     string `xml:"device"`
-					BlockSize  int    `xml:"blockSize"`
-					MntOptions string `xml:"mntOptions"`
-					FsName     string `xml:"fsName"`
-					// As of Gluster3.12 this shows filesystem type. Bug?
-					//InodeSize  uint64 `xml:"inodeSize"`
-					InodesTotal uint64 `xml:"inodesTotal"`
-					InodesFree  uint64 `xml:"inodesFree"`
-				} `xml:"node"`
-			} `xml:"volume"`
-		} `xml:"volumes"`
-	} `xml:"volStatus"`
+	XMLName   xml.Name  `xml:"cliOutput"`
+	OpRet     int       `xml:"opRet"`
+	OpErrno   int       `xml:"opErrno"`
+	OpErrstr  string    `xml:"opErrstr"`
+	VolStatus VolStatus `xml:"volStatus"`
+}
+
+// VolStatus XML type of "gluster volume status detail"
+type VolStatus struct {
+	XMLName xml.Name   `xml:"volStatus"`
+	Volumes VolumesXML `xml:"volumes"`
+}
+
+// VolumesXML type of "gluster volume status detail"
+type VolumesXML struct {
+	XMLName xml.Name    `xml:"volumes"`
+	Volume  []VolumeXML `xml:"volume"`
+}
+
+// VolumeXML type of "gluster volume status detail"
+type VolumeXML struct {
+	VolName   string `xml:"volName"`
+	NodeCount int    `xml:"nodeCount"`
+	Node      []Node `xml:"node"`
+}
+
+// Node XML type of "gluster volume status detail"
+type Node struct {
+	Hostname   string `xml:"hostname"`
+	Path       string `xml:"path"`
+	PeerID     string `xml:"peerid"`
+	Status     int    `xml:"status"`
+	Port       int    `xml:"port"`
+	Ports      Ports  `xml:"ports"`
+	Pid        int    `xml:"pid"`
+	SizeTotal  uint64 `xml:"sizeTotal"`
+	SizeFree   uint64 `xml:"sizeFree"`
+	Device     string `xml:"device"`
+	BlockSize  int    `xml:"blockSize"`
+	MntOptions string `xml:"mntOptions"`
+	FsName     string `xml:"fsName"`
+	// As of Gluster3.12 this shows filesystem type. Bug?
+	//InodeSize  uint64 `xml:"inodeSize"`
+	InodesTotal uint64 `xml:"inodesTotal"`
+	InodesFree  uint64 `xml:"inodesFree"`
+}
+
+// Ports XML type of "gluster volume status detail"
+type Ports struct {
+	TCP  int    `xml:"tcp"`
+	RDMA string `xml:"rdma"`
 }
 
 // VolumeStatusAllDetailXMLUnmarshall reads bytes.buffer and returns unmarshalled xml
