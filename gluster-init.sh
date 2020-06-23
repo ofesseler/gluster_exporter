@@ -6,7 +6,7 @@ VOLNAME="data"
 # Start gluster manually (systemd is not running)
 /usr/sbin/glusterd -p /var/run/glusterd.pid --log-level INFO &
 # Wait to start configuring gluster
-sleep 30
+sleep 10
 # Create a volume
 gluster volume create "$VOLNAME" "$(hostname)":/"$VOLNAME" force
 # Start Gluster volume

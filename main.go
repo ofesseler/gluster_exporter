@@ -325,13 +325,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(
 				nodeSizeFreeBytes, prometheus.GaugeValue, float64(node.SizeFree), node.Hostname, node.Path, vol.VolName,
 			)
-			ch <- prometheus.MustNewConstMetric(
-				nodeInodesTotal, prometheus.CounterValue, float64(node.InodesTotal), node.Hostname, node.Path, vol.VolName,
-			)
-
-			ch <- prometheus.MustNewConstMetric(
-				nodeInodesFree, prometheus.GaugeValue, float64(node.InodesFree), node.Hostname, node.Path, vol.VolName,
-			)
 		}
 	}
 	vols := e.volumes
@@ -369,6 +362,10 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			}
 		} else {
 			for _, mount := range mounts {
+				if strings.HasPrefix(mount.mountPoint, "/var/lib/docker/plugins/") {
+					continue
+				}
+
 				ch <- prometheus.MustNewConstMetric(
 					mountSuccessful, prometheus.GaugeValue, float64(1), mount.volume, mount.mountPoint,
 				)
