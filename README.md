@@ -43,7 +43,7 @@ gotest: run go tests and reformats
 
 **gotest**: runs *vet* and *fmt* go tools
 
-## Run as system service
+## Run as systemd service
 
 ```
 cp gluster_exporter /bin
