@@ -43,6 +43,15 @@ gotest: run go tests and reformats
 
 **gotest**: runs *vet* and *fmt* go tools
 
+## Run as system service
+
+```
+cp gluster_exporter /bin
+cp gluster_exporter.service /etc/systemd/system
+systemctl enable gluster_exporter.service
+systemctl start gluster_exporter.service
+```
+
 ## Relevant Gluster Metrics
 Commands within the exporter are executed with `--xml`.
 
