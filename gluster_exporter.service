@@ -1,0 +1,10 @@
+[Unit]
+Description=Gluster Exporter
+After=glusterd.service
+
+[Service]
+ExecStart=/bin/gluster_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
