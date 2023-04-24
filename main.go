@@ -463,7 +463,7 @@ type mount struct {
 	volume     string
 }
 
-// ParseMountOutput pares output of system execution 'mount'
+// ParseMountOutput pairs output of system execution 'mount'
 func parseMountOutput(mountBuffer string) ([]mount, error) {
 	mounts := make([]mount, 0, 2)
 	mountRows := strings.Split(mountBuffer, "\n")
