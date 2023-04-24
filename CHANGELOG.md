@@ -30,7 +30,7 @@
 
 * [Feature] Added metrics: `brick duration`, `totalRead`, `totalWrite`
 * [Feature] Extended README doc
-* [Feature] Added status badges for cirlce and travis
+* [Feature] Added status badges for circle and travis
 * [Fix] A lot of formatting, fixing typos and refactoring.
 * [Fix] Fixed warning of golint.
 
